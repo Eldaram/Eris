@@ -1,0 +1,315 @@
+.app-container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+.servers-sidebar {
+    width: 72px;
+    background-color: var(--bg-tertiary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.server-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: var(--text-normal);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.server-icon:hover,
+.server-icon.active {
+    border-radius: 16px;
+    background-color: var(--accent);
+    color: #fff;
+}
+
+.channels-sidebar {
+    width: 240px;
+    background-color: var(--bg-secondary);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.channels-header {
+    height: 48px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.channels-header h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.channels-list {
+    padding: 12px 8px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.channel-item {
+    padding: 6px 8px;
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    margin-bottom: 2px;
+    font-weight: 500;
+    transition: all 0.1s ease;
+}
+
+.channel-item:hover {
+    background-color: #35373c;
+    color: var(--text-normal);
+}
+
+.channel-item.active {
+    background-color: #3f4147;
+    color: #fff;
+}
+
+.chat-area {
+    flex: 1;
+    background-color: var(--bg-primary);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.chat-header {
+    height: 48px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.chat-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-normal);
+}
+
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.message {
+    display: flex;
+    gap: 16px;
+    margin-top: 4px;
+}
+
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.message-content h4 {
+    font-size: 1rem;
+    color: var(--text-active);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.timestamp {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.message-content p {
+    color: var(--text-normal);
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.chat-input-wrapper {
+    padding: 0 16px 24px 16px;
+}
+
+.chat-input {
+    width: 100%;
+    background-color: #383a40;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text-normal);
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+}
+
+.chat-input::placeholder {
+    color: var(--text-muted);
+}
+
+/* Modals and Login */
+.login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    background-color: var(--bg-primary);
+}
+
+.login-box {
+    background-color: var(--bg-secondary);
+    padding: 32px;
+    border-radius: 8px;
+    width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.login-box h2 {
+    color: #fff;
+    text-align: center;
+}
+
+.login-box p {
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.login-box input,
+.modal input {
+    background-color: var(--bg-tertiary);
+    border: none;
+    padding: 12px;
+    border-radius: 4px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+}
+
+.login-box button,
+.modal button.primary {
+    background-color: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.login-box button:hover,
+.modal button.primary:hover {
+    background-color: var(--accent-hover);
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal {
+    background-color: var(--bg-primary);
+    padding: 24px;
+    border-radius: 8px;
+    width: 440px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.modal h3 {
+    color: #fff;
+    margin-bottom: 16px;
+}
+
+.modal form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.modal-actions button {
+    background: transparent;
+    color: var(--text-normal);
+    border: none;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.modal-actions button:hover {
+    text-decoration: underline;
+}
+
+.add-server {
+    background-color: var(--bg-secondary);
+    color: #23a559;
+}
+
+.add-server:hover {
+    background-color: #23a559;
+    color: #fff;
+}
+
+.add-channel {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    margin-top: 8px;
+}
+
+.add-channel:hover {
+    color: #fff;
+}

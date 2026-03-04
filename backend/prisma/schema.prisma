@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String    @id @default(uuid())
+  username  String    @unique
+  createdAt DateTime  @default(now())
+  servers   Server[]  @relation("ServerMembers")
+  messages  Message[]
+}
+
+model Server {
+  id        String    @id @default(uuid())
+  name      String
+  createdAt DateTime  @default(now())
+  channels  Channel[]
+  members   User[]    @relation("ServerMembers")
+}
+
+model Channel {
+  id        String    @id @default(uuid())
+  name      String
+  serverId  String
+  server    Server    @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  messages  Message[]
+  createdAt DateTime  @default(now())
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channelId String
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
