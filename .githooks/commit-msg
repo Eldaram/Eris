@@ -1,0 +1,22 @@
+#!/bin/sh
+MSG_FILE=$1
+COMMIT_MSG=$(cat $MSG_FILE)
+
+# Regex for Conventional Commits
+PATTERN="^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-zA-Z0-9_\-]+\))?!?: .+"
+
+if echo "$COMMIT_MSG" | grep -Eq "$PATTERN"; then
+  exit 0
+else
+  echo "==============================================================="
+  echo "Error: Invalid commit message format."
+  echo "Your commit message must follow the Conventional Commits specification."
+  echo ""
+  echo "Format is: <type>[optional scope]: <description>"
+  echo "Example: feat(ui): add new login button"
+  echo "Example: fix: resolve crash on startup"
+  echo ""
+  echo "Allowed types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert"
+  echo "==============================================================="
+  exit 1
+fi
