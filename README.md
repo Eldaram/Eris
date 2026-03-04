@@ -56,6 +56,29 @@ cd BackEnd
 npm run test
 ```
 
+## Database Infrastructure & Commands
+Our project relies on a robust database infrastructure to handle different types of data, all managed via **Docker Compose**:
+- **PostgreSQL**: Used for general purpose relational data.
+- **MongoDB**: Used for storing chat messages.
+- **Pocketbase**: Used for user authentication and secure account creation.
+
+### Prerequisites
+- You must have [Docker](https://www.docker.com/) and Docker Compose installed on your machine.
+- Ensure your `.env` file is configured with the necessary database credentials (see the Back End Configuration section).
+
+### Running the databases
+To launch all the databases in the background, run the following command from the root of the repository:
+```sh
+docker-compose up -d
+```
+All databases are configured with persistent volumes to ensure your data is saved across restarts.
+
+### Stopping the databases
+To stop the databases, run:
+```sh
+docker-compose down
+```
+
 ## Contributing & Development
 This project strictly enforces the **Conventional Commits** specification. You must prefix all your commit messages with a valid classification.
 
