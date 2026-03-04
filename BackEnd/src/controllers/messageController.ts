@@ -23,6 +23,7 @@ export const createMessage = async (req: Request, res: Response) => {
     }
 };
 
+// TODO This will need review. A room can have a lot of messages, so this will need to be paginated.
 export const getMessagesByRoom = async (req: Request, res: Response) => {
     try {
         const { roomId } = req.params;
