@@ -107,3 +107,16 @@ We have provided a Git hook to automatically validate your commit messages befor
 git config core.hooksPath .githooks
 ```
 If your commit doesn't follow the formatting, it will be rejected with an error explaining the correct syntax.
+
+## Continuous Integration / Continuous Deployment (CI/CD)
+The project is configured with an automated CI/CD pipeline using **GitHub Actions**.
+
+The pipeline is designed to **prevent regressions** from being merged into the primary branch by testing all incoming code changes. As requested, it does not run per commit on any arbitrary tracking branch but only when code is explicitly being integrated into the main application.
+
+### Trigger rules
+- The pipeline executes automatically before a merge takes place (specifically on any **Pull Request** targeting the `main` branch).
+
+### Workflow steps
+Whenever the workflow is triggered, two independent jobs are executed:
+1. **Front End Tests**: Checks out the code, installs Vue.js dependencies, and executes the Vitest suite.
+2. **Back End Tests**: Checks out the code, configures a test `.env` file, spins up the temporary Docker databases, installs dependencies, and runs the back end unit and API tests with Jest/Supertest. Finally, it un-provisions the Docker containers even if tests fail.
