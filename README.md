@@ -13,6 +13,24 @@ The project currently focuses on a Minimum Viable Product (MVP) desktop experien
 
 *(More details to be added as the project evolves!)*
 
+## Front End Stack & Commands
+Our front end is built with **Vue JS** (via Vite).
+
+### Running the application
+To run the front end application locally:
+```sh
+cd FrontEnd
+npm install
+npm run dev
+```
+
+### Running tests
+We use **Vitest** for our unit tests. To launch the test suite:
+```sh
+cd FrontEnd
+npm run test
+```
+
 ## Contributing & Development
 This project strictly enforces the **Conventional Commits** specification. You must prefix all your commit messages with a valid classification.
 
