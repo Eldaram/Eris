@@ -17,13 +17,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Dependencies
-        working-directory: ./FrontEnd
-        run: npm install
+      - name: Install Common Dependencies & Setup
+        run: |
+          npm install
+          npm run setup:frontend
 
       - name: Run Tests
-        working-directory: ./FrontEnd
-        run: npm run test
+        run: npm run test:frontend
 
   test-backend:
     runs-on: ubuntu-latest
@@ -53,13 +53,10 @@ jobs:
       - name: Start Database Infrastructure
         run: docker compose up -d postgres mongodb pocketbase
 
-      - name: Install Dependencies
-        working-directory: ./BackEnd
-        run: npm install
-
-      - name: Generate Prisma Client
-        working-directory: ./BackEnd
-        run: npx prisma generate
+      - name: Install Dependencies & Setup
+        run: |
+          npm install
+          npm run install:backend
 
       - name: Wait for PostgreSQL
         run: |
@@ -95,12 +92,10 @@ jobs:
           done
 
       - name: Run Prisma Migrations
-        working-directory: ./BackEnd
-        run: npx prisma migrate deploy
+        run: npm run db:migrate
 
       - name: Run Tests
-        working-directory: ./BackEnd
-        run: npm run test
+        run: npm run test:backend
 
       - name: Stop Database Infrastructure
         if: always()
