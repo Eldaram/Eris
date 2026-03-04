@@ -13,6 +13,72 @@ The project currently focuses on a Minimum Viable Product (MVP) desktop experien
 
 *(More details to be added as the project evolves!)*
 
+## Front End Stack & Commands
+Our front end is built with **Vue JS** (via Vite).
+
+### Running the application
+To run the front end application locally:
+```sh
+cd FrontEnd
+npm install
+npm run dev
+```
+
+### Running tests
+We use **Vitest** for our unit tests. To launch the test suite:
+```sh
+cd FrontEnd
+npm run test
+```
+
+## Back End Stack & Commands
+Our back end is built with **Node JS, TypeScript, and Express**.
+
+### Configuration
+Before running the back end, you need to configure your environment variables.
+Duplicate the `.env.example` file located at the **root** of the repository and rename it to `.env`. Alternatively, run the following from the project root:
+```sh
+cp .env.example .env
+```
+*(Optionally, adjust the `PORT` or any future variables inside your new `.env` file.)*
+
+### Running the application
+To run the back end application locally during development:
+```sh
+cd BackEnd
+npm run dev
+```
+
+### Running tests
+We use **Jest** and **Supertest** for our unit tests and API testing. To launch the test suite:
+```sh
+cd BackEnd
+npm run test
+```
+
+## Database Infrastructure & Commands
+Our project relies on a robust database infrastructure to handle different types of data, all managed via **Docker Compose**:
+- **PostgreSQL**: Used for general purpose relational data.
+- **MongoDB**: Used for storing chat messages.
+- **Pocketbase**: Used for user authentication and secure account creation.
+
+### Prerequisites
+- You must have [Docker](https://www.docker.com/) and Docker Compose installed on your machine.
+- Ensure your `.env` file is configured with the necessary database credentials (see the Back End Configuration section).
+
+### Running the databases
+To launch all the databases in the background, run the following command from the root of the repository:
+```sh
+docker-compose up -d
+```
+All databases are configured with persistent volumes to ensure your data is saved across restarts.
+
+### Stopping the databases
+To stop the databases, run:
+```sh
+docker-compose down
+```
+
 ## Contributing & Development
 This project strictly enforces the **Conventional Commits** specification. You must prefix all your commit messages with a valid classification.
 
@@ -41,3 +107,16 @@ We have provided a Git hook to automatically validate your commit messages befor
 git config core.hooksPath .githooks
 ```
 If your commit doesn't follow the formatting, it will be rejected with an error explaining the correct syntax.
+
+## Continuous Integration / Continuous Deployment (CI/CD)
+The project is configured with an automated CI/CD pipeline using **GitHub Actions**.
+
+The pipeline is designed to **prevent regressions** from being merged into the primary branch by testing all incoming code changes. As requested, it does not run per commit on any arbitrary tracking branch but only when code is explicitly being integrated into the main application.
+
+### Trigger rules
+- The pipeline executes automatically before a merge takes place (specifically on any **Pull Request** targeting the `main` branch).
+
+### Workflow steps
+Whenever the workflow is triggered, two independent jobs are executed:
+1. **Front End Tests**: Checks out the code, installs Vue.js dependencies, and executes the Vitest suite.
+2. **Back End Tests**: Checks out the code, configures a test `.env` file, spins up the temporary Docker databases, installs dependencies, and runs the back end unit and API tests with Jest/Supertest. Finally, it un-provisions the Docker containers even if tests fail.

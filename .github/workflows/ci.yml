@@ -1,0 +1,55 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        working-directory: ./FrontEnd
+        run: npm install
+
+      - name: Run Tests
+        working-directory: ./FrontEnd
+        run: npm run test
+
+  test-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configure Environment Variables
+        run: cp .env.example .env
+        
+      - name: Start Database Infrastructure
+        run: docker compose up -d
+
+      - name: Install Dependencies
+        working-directory: ./BackEnd
+        run: npm install
+
+      - name: Run Tests
+        working-directory: ./BackEnd
+        run: npm run test
+
+      - name: Stop Database Infrastructure
+        if: always()
+        run: docker compose down
