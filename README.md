@@ -31,6 +31,31 @@ cd FrontEnd
 npm run test
 ```
 
+## Back End Stack & Commands
+Our back end is built with **Node JS, TypeScript, and Express**.
+
+### Configuration
+Before running the back end, you need to configure your environment variables.
+Duplicate the `.env.example` file located at the **root** of the repository and rename it to `.env`. Alternatively, run the following from the project root:
+```sh
+cp .env.example .env
+```
+*(Optionally, adjust the `PORT` or any future variables inside your new `.env` file.)*
+
+### Running the application
+To run the back end application locally during development:
+```sh
+cd BackEnd
+npm run dev
+```
+
+### Running tests
+We use **Jest** and **Supertest** for our unit tests and API testing. To launch the test suite:
+```sh
+cd BackEnd
+npm run test
+```
+
 ## Contributing & Development
 This project strictly enforces the **Conventional Commits** specification. You must prefix all your commit messages with a valid classification.
 
