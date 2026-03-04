@@ -1,0 +1,119 @@
+//This file use the DBML language
+//To visualize it, use the VSCode extension "DBML"
+
+// ==========================================
+// A - MONGODB (Messages)
+// ==========================================
+Table MongoDB_Messages {
+  id varchar [pk, note: 'MongoDB ObjectId']
+  room_id uuid [note: 'Refers to Postgres_Rooms.id']
+  author_id uuid [note: 'Refers to Postgres_Users.id']
+  content text [note: 'The actual message payload']
+  created_at timestamp
+  updated_at timestamp
+
+  Note: 'US #8, #11, #13: Store, fetch, and broadcast messages.'
+}
+
+// ==========================================
+// B - POSTGRESQL (Relational Data)
+// ==========================================
+Table Postgres_Users {
+  id uuid [pk, note: 'Synced with Pocketbase User ID']
+  username varchar
+  created_at timestamp
+}
+
+Table Postgres_User_Alias {
+  id uuid [pk]
+  user_id uuid [ref: > Postgres_Users.id]
+  server_id uuid [ref: > Postgres_Serveurs.id, note: 'Server-specific nickname']
+  alias varchar
+  
+  Note: 'US #5: Allows changing server-specific usernames.'
+}
+
+Table Postgres_Serveurs {
+  id uuid [pk]
+  name varchar
+  owner_id uuid [ref: > Postgres_Users.id]
+  created_at timestamp
+
+  Note: 'US #4: A user can create a server'
+}
+
+Table Postgres_User_Per_Server {
+  user_id uuid [ref: > Postgres_Users.id]
+  server_id uuid [ref: > Postgres_Serveurs.id]
+  joined_at timestamp
+
+  indexes {
+    (user_id, server_id) [pk]
+  }
+
+  Note: 'US #10: A user can join a server'
+}
+
+Table Postgres_Server_Invites {
+  id uuid [pk]
+  server_id uuid [ref: > Postgres_Serveurs.id]
+  creator_id uuid [ref: > Postgres_Users.id]
+  code varchar [unique]
+  expires_at timestamp
+  created_at timestamp
+
+  Note: 'US #6: Server invite creation & management'
+}
+
+Table Postgres_Rooms {
+  id uuid [pk]
+  server_id uuid [null, ref: > Postgres_Serveurs.id, note: 'Null if it is a Private Conversation (DM)']
+  name varchar [null, note: 'Room name (used for server rooms)']
+  is_dm boolean [default: false]
+  created_at timestamp
+
+  Note: 'US #3, #7, #1, #12, #14: Covers both Server Rooms and Private Conversations (DMs)'
+}
+
+Table Postgres_Room_Participants {
+  room_id uuid [ref: > Postgres_Rooms.id]
+  user_id uuid [ref: > Postgres_Users.id]
+  joined_at timestamp
+
+  indexes {
+    (room_id, user_id) [pk]
+  }
+
+  Note: 'US #15: A user can see the list of people whom have access to the room'
+}
+
+// ==========================================
+// C - POCKETBASE (Auth & File Locker)
+// ==========================================
+Table Pocketbase_User {
+  id uuid [pk, note: 'Pocketbase primary user ID']
+  username varchar [unique]
+  email varchar [unique]
+  password_hash varchar
+  avatar_file_id uuid [ref: > Pocketbase_Files.id]
+  created_at timestamp
+
+  Note: 'US #2, #5: Account creation and user auth management'
+}
+
+Table Pocketbase_Files {
+  id uuid [pk]
+  user_id uuid [ref: > Pocketbase_User.id]
+  file_name varchar
+  file_url varchar
+  uploaded_at timestamp
+
+  Note: 'US #9: File upload and management via 3S file locker'
+}
+
+// ==========================================
+// Cross-Database Logical Links (for visualization)
+// ==========================================
+Ref: "Postgres_Users"."id" - "Pocketbase_User"."id"
+Ref: "MongoDB_Messages"."room_id" > "Postgres_Rooms"."id"
+Ref: "MongoDB_Messages"."author_id" > "Postgres_User_Alias"."id"

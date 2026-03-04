@@ -17,13 +17,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Dependencies
-        working-directory: ./FrontEnd
-        run: npm install
+      - name: Install Common Dependencies & Setup
+        run: |
+          npm install
+          npm run setup:frontend
 
       - name: Run Tests
-        working-directory: ./FrontEnd
-        run: npm run test
+        run: npm run test:frontend
 
   test-backend:
     runs-on: ubuntu-latest
@@ -36,19 +36,66 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Configure Environment Variables
+      - name: Configure Root Environment Variables
         run: cp .env.example .env
-        
-      - name: Start Database Infrastructure
-        run: docker compose up -d
 
-      - name: Install Dependencies
-        working-directory: ./BackEnd
-        run: npm install
+      - name: Configure Backend Environment Variables
+        run: |
+          cat > BackEnd/.env << 'EOF'
+          PORT=4000
+          DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/eris?schema=public"
+          MONGO_URI="mongodb://root:rootpassword@127.0.0.1:27017/eris?authSource=admin"
+          POCKETBASE_URL="http://127.0.0.1:8090"
+          POCKETBASE_ADMIN_EMAIL="admin@eris.local"
+          POCKETBASE_ADMIN_PASSWORD="admin_password_123"
+          EOF
+
+      - name: Start Database Infrastructure
+        run: docker compose up -d postgres mongodb pocketbase
+
+      - name: Install Dependencies & Setup
+        run: |
+          npm install
+          npm run install:backend
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in $(seq 1 30); do
+            if docker exec eris-postgres pg_isready -U postgres; then
+              echo "PostgreSQL is ready!"
+              break
+            fi
+            echo "Waiting for PostgreSQL... ($i/30)"
+            sleep 1
+          done
+
+      - name: Wait for MongoDB
+        run: |
+          for i in $(seq 1 30); do
+            if docker exec eris-mongodb mongosh --eval "db.adminCommand('ping')" -u root -p rootpassword --authenticationDatabase admin >/dev/null 2>&1; then
+              echo "MongoDB is ready!"
+              break
+            fi
+            echo "Waiting for MongoDB... ($i/30)"
+            sleep 1
+          done
+
+      - name: Wait for PocketBase
+        run: |
+          for i in $(seq 1 30); do
+            if curl -s http://127.0.0.1:8090/api/health >/dev/null; then
+              echo "PocketBase is ready!"
+              break
+            fi
+            echo "Waiting for PocketBase... ($i/30)"
+            sleep 1
+          done
+
+      - name: Run Prisma Migrations
+        run: npm run db:migrate
 
       - name: Run Tests
-        working-directory: ./BackEnd
-        run: npm run test
+        run: npm run test:backend
 
       - name: Stop Database Infrastructure
         if: always()

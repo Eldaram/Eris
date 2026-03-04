@@ -1,0 +1,23 @@
+{
+    "name": "eris-root",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "install:backend": "cd BackEnd && npm install && npx prisma generate",
+        "db:migrate": "cd BackEnd && npx prisma migrate dev",
+        "setup:backend": "npm run install:backend && npm run db:migrate",
+        "setup:frontend": "cd FrontEnd && npm install",
+        "setup": "npm run setup:backend && npm run setup:frontend",
+        "db:up": "docker compose up -d",
+        "db:down": "docker compose down",
+        "start:backend": "cd BackEnd && npm run dev",
+        "start:frontend": "cd FrontEnd && npm run dev",
+        "start": "npm run db:up && npm run setup && concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+        "test:backend": "cd BackEnd && npm test",
+        "test:frontend": "cd FrontEnd && npm test",
+        "test": "npm run test:backend && npm run test:frontend"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}
