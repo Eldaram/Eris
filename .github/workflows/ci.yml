@@ -45,10 +45,13 @@ jobs:
           PORT=4000
           DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/eris?schema=public"
           MONGO_URI="mongodb://root:rootpassword@127.0.0.1:27017/eris?authSource=admin"
+          POCKETBASE_URL="http://127.0.0.1:8090"
+          POCKETBASE_ADMIN_EMAIL="admin@eris.local"
+          POCKETBASE_ADMIN_PASSWORD="admin_password_123"
           EOF
 
       - name: Start Database Infrastructure
-        run: docker compose up -d postgres mongodb
+        run: docker compose up -d postgres mongodb pocketbase
 
       - name: Install Dependencies
         working-directory: ./BackEnd
@@ -77,6 +80,17 @@ jobs:
               break
             fi
             echo "Waiting for MongoDB... ($i/30)"
+            sleep 1
+          done
+
+      - name: Wait for PocketBase
+        run: |
+          for i in $(seq 1 30); do
+            if curl -s http://127.0.0.1:8090/api/health >/dev/null; then
+              echo "PocketBase is ready!"
+              break
+            fi
+            echo "Waiting for PocketBase... ($i/30)"
             sleep 1
           done
 

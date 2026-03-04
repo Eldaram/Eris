@@ -71,7 +71,7 @@ npm test tests/prisma.test.ts
 Our project relies on a robust database infrastructure to handle different types of data, all managed via **Docker Compose**:
 - **PostgreSQL**: Used for general purpose relational data.
 - **MongoDB**: Used for storing chat messages.
-- **Pocketbase**: Used for user authentication and secure account creation.
+- **PocketBase**: Used for user authentication and file management.
 
 ### Prerequisites
 - You must have [Docker](https://www.docker.com/) and Docker Compose installed on your machine.
