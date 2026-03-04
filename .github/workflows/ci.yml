@@ -44,10 +44,11 @@ jobs:
           cat > BackEnd/.env << 'EOF'
           PORT=4000
           DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/eris?schema=public"
+          MONGO_URI="mongodb://root:rootpassword@127.0.0.1:27017/eris?authSource=admin"
           EOF
 
       - name: Start Database Infrastructure
-        run: docker compose up -d postgres
+        run: docker compose up -d postgres mongodb
 
       - name: Install Dependencies
         working-directory: ./BackEnd
@@ -65,6 +66,17 @@ jobs:
               break
             fi
             echo "Waiting for PostgreSQL... ($i/30)"
+            sleep 1
+          done
+
+      - name: Wait for MongoDB
+        run: |
+          for i in $(seq 1 30); do
+            if docker exec eris-mongodb mongosh --eval "db.adminCommand('ping')" -u root -p rootpassword --authenticationDatabase admin >/dev/null 2>&1; then
+              echo "MongoDB is ready!"
+              break
+            fi
+            echo "Waiting for MongoDB... ($i/30)"
             sleep 1
           done
 

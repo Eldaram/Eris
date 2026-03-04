@@ -41,7 +41,7 @@ Duplicate the `.env.example` file located inside the **`backend/`** directory an
 cd backend
 cp .env.example .env
 ```
-This file contains the server `PORT` and the Prisma `DATABASE_URL`. Adjust them as needed.
+This file contains the server `PORT`, the Prisma `DATABASE_URL`, and the connection string for MongoDB `MONGO_URI`. Adjust them as needed.
 
 ### Running the application
 To run the back end application locally during development:
