@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  username  String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  aliases           UserAlias[]
+  ownedServers      Server[]
+  servers           UserPerServer[]
+  invitesCreated    ServerInvite[]
+  roomsParticipated RoomParticipant[]
+
+  @@map("Postgres_Users")
+}
+
+model UserAlias {
+  id       String @id @default(uuid()) @db.Uuid
+  userId   String @map("user_id") @db.Uuid
+  serverId String @map("server_id") @db.Uuid
+  alias    String
+
+  user   User   @relation(fields: [userId], references: [id])
+  server Server @relation(fields: [serverId], references: [id])
+
+  @@map("Postgres_User_Alias")
+}
+
+model Server {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  ownerId   String   @map("owner_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  owner   User            @relation(fields: [ownerId], references: [id])
+  aliases UserAlias[]
+  users   UserPerServer[]
+  invites ServerInvite[]
+  rooms   Room[]
+
+  @@map("Postgres_Serveurs")
+}
+
+model UserPerServer {
+  userId   String   @map("user_id") @db.Uuid
+  serverId String   @map("server_id") @db.Uuid
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  server Server @relation(fields: [serverId], references: [id])
+
+  @@id([userId, serverId])
+  @@map("Postgres_User_Per_Server")
+}
+
+model ServerInvite {
+  id        String   @id @default(uuid()) @db.Uuid
+  serverId  String   @map("server_id") @db.Uuid
+  creatorId String   @map("creator_id") @db.Uuid
+  code      String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  server  Server @relation(fields: [serverId], references: [id])
+  creator User   @relation(fields: [creatorId], references: [id])
+
+  @@map("Postgres_Server_Invites")
+}
+
+model Room {
+  id        String   @id @default(uuid()) @db.Uuid
+  serverId  String?  @map("server_id") @db.Uuid
+  name      String?
+  isDm      Boolean  @default(false) @map("is_dm")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  server       Server?           @relation(fields: [serverId], references: [id])
+  participants RoomParticipant[]
+
+  @@map("Postgres_Rooms")
+}
+
+model RoomParticipant {
+  roomId   String   @map("room_id") @db.Uuid
+  userId   String   @map("user_id") @db.Uuid
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  room Room @relation(fields: [roomId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@id([roomId, userId])
+  @@map("Postgres_Room_Participants")
+}

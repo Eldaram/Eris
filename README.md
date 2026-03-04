@@ -36,24 +36,35 @@ Our back end is built with **Node JS, TypeScript, and Express**.
 
 ### Configuration
 Before running the back end, you need to configure your environment variables.
-Duplicate the `.env.example` file located at the **root** of the repository and rename it to `.env`. Alternatively, run the following from the project root:
+Duplicate the `.env.example` file located inside the **`backend/`** directory and rename it to `.env`:
 ```sh
+cd backend
 cp .env.example .env
 ```
-*(Optionally, adjust the `PORT` or any future variables inside your new `.env` file.)*
+This file contains the server `PORT` and the Prisma `DATABASE_URL`. Adjust them as needed.
 
 ### Running the application
 To run the back end application locally during development:
-```sh
-cd BackEnd
-npm run dev
-```
+1. Ensure the databases are running (see [Database Infrastructure](#database-infrastructure--commands)).
+2. Generate Prisma Client:
+   ```sh
+   cd BackEnd
+   npm run prisma:generate
+   ```
+3. Run the development server:
+   ```sh
+   npm run dev
+   ```
 
 ### Running tests
 We use **Jest** and **Supertest** for our unit tests and API testing. To launch the test suite:
 ```sh
 cd BackEnd
 npm run test
+```
+To run specifically the database schema verification tests:
+```sh
+npm test tests/prisma.test.ts
 ```
 
 ## Database Infrastructure & Commands
@@ -64,7 +75,10 @@ Our project relies on a robust database infrastructure to handle different types
 
 ### Prerequisites
 - You must have [Docker](https://www.docker.com/) and Docker Compose installed on your machine.
-- Ensure your `.env` file is configured with the necessary database credentials (see the Back End Configuration section).
+- Ensure the **root** `.env` file is configured with the database credentials used by Docker Compose (`POSTGRES_*`, `MONGO_*`). A `.env.example` is provided at the repository root — copy it to `.env` if you haven't already:
+  ```sh
+  cp .env.example .env
+  ```
 
 ### Running the databases
 To launch all the databases in the background, run the following command from the root of the repository:
@@ -72,6 +86,14 @@ To launch all the databases in the background, run the following command from th
 docker-compose up -d
 ```
 All databases are configured with persistent volumes to ensure your data is saved across restarts.
+
+### Database Migrations (PostgreSQL)
+After starting the PostgreSQL container, you must run the Prisma migrations to set up the schema:
+```sh
+cd BackEnd
+npm run prisma:migrate
+```
+This will create all necessary tables and indexes for the PostgreSQL database.
 
 ### Stopping the databases
 To stop the databases, run:

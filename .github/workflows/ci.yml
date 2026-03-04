@@ -36,15 +36,41 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Configure Environment Variables
+      - name: Configure Root Environment Variables
         run: cp .env.example .env
-        
+
+      - name: Configure Backend Environment Variables
+        run: |
+          cat > BackEnd/.env << 'EOF'
+          PORT=4000
+          DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/eris?schema=public"
+          EOF
+
       - name: Start Database Infrastructure
-        run: docker compose up -d
+        run: docker compose up -d postgres
 
       - name: Install Dependencies
         working-directory: ./BackEnd
         run: npm install
+
+      - name: Generate Prisma Client
+        working-directory: ./BackEnd
+        run: npx prisma generate
+
+      - name: Wait for PostgreSQL
+        run: |
+          for i in $(seq 1 30); do
+            if docker exec eris-postgres pg_isready -U postgres; then
+              echo "PostgreSQL is ready!"
+              break
+            fi
+            echo "Waiting for PostgreSQL... ($i/30)"
+            sleep 1
+          done
+
+      - name: Run Prisma Migrations
+        working-directory: ./BackEnd
+        run: npx prisma migrate deploy
 
       - name: Run Tests
         working-directory: ./BackEnd
