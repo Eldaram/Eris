@@ -6,7 +6,10 @@ import LoginView from '../../views/LoginView.vue'
 // Create a mock router to use in tests
 const router = createRouter({
     history: createWebHistory(),
-    routes: [{ path: '/', name: 'home', component: { template: '<div>Home</div>' } }]
+    routes: [
+        { path: '/', name: 'home', component: { template: '<div>Home</div>' } },
+        { path: '/register', name: 'register', component: { template: '<div>Register</div>' } }
+    ]
 })
 
 describe('LoginView.vue', () => {
@@ -20,7 +23,7 @@ describe('LoginView.vue', () => {
         expect(wrapper.find('h1').text()).toBe('Welcome to Eris')
         expect(wrapper.find('input[type="text"]').exists()).toBe(true)
         expect(wrapper.find('input[type="password"]').exists()).toBe(true)
-        expect(wrapper.find('button.login-button').text()).toBe('Login')
+        expect(wrapper.find('button.auth-button').text()).toBe('Login')
     })
 
     it('updates v-model values when typing', async () => {
