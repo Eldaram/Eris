@@ -25,17 +25,21 @@ npm run test
 Our back end is built with **Node JS, TypeScript, and Express**.
 
 ### Configuration
-Before running the back end, you need to configure your environment variables.
-Duplicate the `.env.example` file located inside the **`BackEnd/`** directory and rename it to `.env`:
+All environment variables live in a **single `.env` file at the repository root**. Copy the provided example once:
 ```sh
-cd BackEnd
+# Mac/Linux
 cp .env.example .env
+
+# Windows
+copy .env.example .env
 ```
-This file contains the server `PORT`, the Prisma `DATABASE_URL`, and the connection string for MongoDB `MONGO_URI`. Adjust them as needed.
+The file contains credentials for all three databases, connection strings (`DATABASE_URL`, `MONGO_URI`), PocketBase settings, and the backend `PORT`. Adjust values as needed.
+
+> **No `BackEnd/.env` is required.** The backend reads all configuration from the root `.env` via `jest.setup.ts` (tests) and standard `process.env` (runtime).
 
 ### Running the application standalone
 To run the back end application locally during development:
-1. Ensure the databases are running (see [Database Infrastructure](#database-infrastructure--commands)).
+1. Ensure databases are running: `npm run db:up`
 2. Generate Prisma Client:
    ```sh
    cd BackEnd
@@ -58,48 +62,55 @@ npm test tests/prisma.test.ts
 ```
 
 ## Database Infrastructure & Commands
-Our project relies on a robust database infrastructure to handle different types of data, all managed via **Docker Compose**:
-- **PostgreSQL**: Used for general purpose relational data.
-- **MongoDB**: Used for storing chat messages.
-- **PocketBase**: Used for user authentication and file management.
+Our project relies on a robust database infrastructure, all managed via **Docker Compose**:
+- **PostgreSQL**: Relational data (via Prisma).
+- **MongoDB**: Chat message storage.
+- **PocketBase**: User authentication and file management.
 
 ### Prerequisites
-- You must have [Docker](https://www.docker.com/) and Docker Compose installed on your machine.
-- Ensure the **root** `.env` file is configured with the database credentials used by Docker Compose (`POSTGRES_*`, `MONGO_*`). A `.env.example` is provided at the repository root — copy it to `.env` if you haven't already:
-  ```sh
-  cp .env.example .env
-  ```
+- [Docker](https://www.docker.com/) and Docker Compose must be installed.
+- The root `.env` file must exist (see Configuration above).
 
 ### Running the databases
-To launch all the databases in the background, run the following command from the root of the repository:
+To launch all databases and automatically initialize the PocketBase admin account:
 ```sh
-docker-compose up -d
+npm run db:up
 ```
-All databases are configured with persistent volumes to ensure your data is saved across restarts.
+This starts all containers. The `pocketbase-init` service will automatically create the superuser account once PocketBase is healthy. This is **idempotent** — safe to run multiple times.
 
 ### Database Migrations (PostgreSQL)
-After starting the PostgreSQL container, you must run the Prisma migrations to set up the schema:
+After the databases are running, apply Prisma migrations:
 ```sh
-cd BackEnd
-npx prisma migrate dev
+npm run db:migrate:deploy   # CI / production (non-interactive)
+npm run db:migrate          # local dev (interactive, creates migration files)
 ```
-This will create all necessary tables and indexes for the PostgreSQL database.
+
+### Resetting the entire database environment
+To wipe all volumes and reinitialize from scratch:
+```sh
+npm run db:reset
+```
+This runs `docker compose down -v` followed by `db:init` (bring up containers, deploy migrations, init PocketBase admin).
 
 ### Stopping the databases
-To stop the databases, run:
 ```sh
-docker-compose down
+npm run db:down
 ```
 
 ## Continuous Integration / Continuous Deployment (CI/CD)
 The project is configured with an automated CI/CD pipeline using **GitHub Actions**.
 
-The pipeline is designed to **prevent regressions** from being merged into the primary branch by testing all incoming code changes. As requested, it does not run per commit on any arbitrary tracking branch but only when code is explicitly being integrated into the main application.
-
-### Trigger rules
-- The pipeline executes automatically before a merge takes place (specifically on any **Pull Request** targeting the `main` branch).
+The pipeline **prevents regressions** from being merged by testing all incoming changes. It runs on **Pull Requests** targeting the `main` or `dev` branches.
 
 ### Workflow steps
-Whenever the workflow is triggered, two independent jobs are executed:
-1. **Front End Tests**: Checks out the code, installs Vue.js dependencies, and executes the Vitest suite.
-2. **Back End Tests**: Checks out the code, configures a test `.env` file, spins up the temporary Docker databases, installs dependencies, and runs the back end unit and API tests with Jest/Supertest. Finally, it un-provisions the Docker containers even if tests fail.
+Two independent jobs run on every trigger:
+
+1. **Front End Tests**: Checks out the code, installs Vue.js dependencies, and runs the Vitest suite.
+2. **Back End Tests**:
+   - Checks out the code and copies `.env.example → .env` (single file, no manual setup)
+   - Starts PostgreSQL, MongoDB, and PocketBase containers
+   - Waits for each service to be healthy
+   - Runs `docker compose run --rm pocketbase-init` to create the PocketBase admin
+   - Runs `prisma migrate deploy` (non-interactive, CI-safe)
+   - Executes the Jest test suite
+   - Tears down all containers **and volumes** (`docker compose down -v`) even on failure
