@@ -4,6 +4,7 @@ import path from 'path';
 import { connectMongo } from './config/mongo';
 import { runPocketBaseMigrations } from './config/pb_migrations';
 import messageRoutes from './routes/messageRoutes';
+import userRoutes from './routes/userRoutes';
 
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
@@ -23,6 +24,7 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 app.use('/api/messages', messageRoutes);
+app.use('/api/users', userRoutes);
 
 // only listen if not imported (e.g., when testing)
 if (require.main === module) {

@@ -13,7 +13,8 @@ describe('Prisma Schema Verification', () => {
 
     it('should be able to create and find a user', async () => {
         const testUsername = `testuser_${Date.now()}`;
-        const newUser = await UserModel.create(testUsername);
+        const pocketbaseId = `pb_${Date.now()}`;
+        const newUser = await UserModel.createInPrisma(testUsername, pocketbaseId);
 
         expect(newUser).toBeDefined();
         expect(newUser.username).toBe(testUsername);

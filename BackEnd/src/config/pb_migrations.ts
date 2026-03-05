@@ -6,69 +6,49 @@ export const runPocketBaseMigrations = async () => {
 
     try {
         // Authenticate as admin
-        await pb.collection('_superusers').authWithPassword(adminEmail, adminPassword);
+        await pb.admins.authWithPassword(adminEmail, adminPassword);
         console.log('Successfully authenticated PocketBase admin.');
 
-        // 1. Create Pocketbase_User collection if it doesn't exist
+        // Verify and configure the built-in 'users' auth collection
         try {
-            await pb.collections.getOne('Pocketbase_User');
-            console.log('Collection Pocketbase_User already exists.');
+            const usersCollection = await pb.collections.getOne('users');
+            console.log('PocketBase built-in users collection is ready.');
+            console.log(`Collection type: ${usersCollection.type}`);
+
+            // Check if username field exists, if not add it
+            const hasUsernameField = usersCollection.fields?.some((f: any) => f.name === 'username');
+            if (!hasUsernameField) {
+                console.log('Adding username field to users collection...');
+                usersCollection.fields = usersCollection.fields || [];
+                usersCollection.fields.push({
+                    id: `text_${Date.now()}`,
+                    name: 'username',
+                    type: 'text',
+                    required: false,
+                    hidden: false,
+                    presentable: true,
+                    unique: true,
+                    system: false,
+                } as any);
+                await pb.collections.update(usersCollection.id, usersCollection);
+                console.log('Username field added to users collection.');
+            } else {
+                console.log('Username field already exists in users collection.');
+            }
         } catch (err: any) {
             if (err.status === 404) {
-                console.log('Creating Collection Pocketbase_User...');
-                await pb.collections.create({
-                    name: 'Pocketbase_User',
-                    type: 'base',
-                    fields: [
-                        { name: 'username', type: 'text', required: true, min: 1, max: 255, pattern: '' },
-                        { name: 'email', type: 'email', required: true },
-                        { name: 'password_hash', type: 'text', required: true }
-                        // avatar_file_id added later
-                    ],
-                });
+                console.warn('Built-in users collection not found. PocketBase should create this automatically.');
+                console.warn('Make sure you are running PocketBase v0.8.0 or later.');
             } else {
                 throw err;
             }
         }
 
-        // 2. Create Pocketbase_Files collection if it doesn't exist
-        const userCollection = await pb.collections.getOne('Pocketbase_User');
-
-        try {
-            await pb.collections.getOne('Pocketbase_Files');
-            console.log('Collection Pocketbase_Files already exists.');
-        } catch (err: any) {
-            if (err.status === 404) {
-                console.log('Creating Collection Pocketbase_Files...');
-                await pb.collections.create({
-                    name: 'Pocketbase_Files',
-                    type: 'base',
-                    fields: [
-                        { name: 'user_id', type: 'relation', required: true, collectionId: userCollection.id, cascadeDelete: true, minSelect: 1, maxSelect: 1 },
-                        { name: 'file_name', type: 'text', required: true },
-                        { name: 'file_url', type: 'url', required: true }
-                    ],
-                });
-
-                const filesCollection = await pb.collections.getOne('Pocketbase_Files');
-
-                // Update user collection to point to avatar_file_id
-                await pb.collections.update(userCollection.id, {
-                    fields: [
-                        ...(userCollection.fields || []),
-                        { name: 'avatar_file_id', type: 'relation', required: false, collectionId: filesCollection.id, cascadeDelete: false, minSelect: null, maxSelect: 1 }
-                    ]
-                });
-            } else {
-                throw err;
-            }
-        }
-
-        console.log('PocketBase migrations completed.');
+        console.log('PocketBase initialization completed.');
     } catch (error: any) {
-        console.error('Error running PocketBase migrations:');
+        console.error('Error initializing PocketBase:');
         console.dir(error.response?.data || error, { depth: null });
-        // Do not exit process here as it might just be PB not ready yet, or we could exit based on requirements
+        // Do not exit process here as it might just be PB not ready yet
         if (process.env.NODE_ENV !== 'test') {
             process.exit(1);
         }
