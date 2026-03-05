@@ -22,21 +22,9 @@ We have combined the application startup process into a single command for a fri
 - [Docker & Docker Compose](https://www.docker.com/)
 
 ### 2. Environment Setup
-You need to initialize two `.env` files based on their respective examples:
+Create your `.env` file from the provided example (one file, in the root directory):
 
-**Root directory:**
 ```sh
-# Mac/Linux
-cp .env.example .env
-
-# Windows
-copy .env.example .env
-```
-
-**BackEnd directory:**
-```sh
-cd BackEnd
-
 # Mac/Linux
 cp .env.example .env
 

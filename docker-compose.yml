@@ -34,6 +34,26 @@ services:
     volumes:
       - pocketbase_data:/pb_data
       - pocketbase_public:/pb_public
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8090/api/health" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  pocketbase-init:
+    image: ghcr.io/muchobien/pocketbase:latest
+    restart: "no"
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+    environment:
+      PB_ADMIN_EMAIL: ${POCKETBASE_ADMIN_EMAIL:-admin@eris.local}
+      PB_ADMIN_PASSWORD: ${POCKETBASE_ADMIN_PASSWORD:-admin_password_123}
+    entrypoint: >
+      sh -c "pocketbase superuser upsert $$PB_ADMIN_EMAIL $$PB_ADMIN_PASSWORD --dir=/pb_data"
+    volumes:
+      - pocketbase_data:/pb_data
 
 volumes:
   postgres_data:

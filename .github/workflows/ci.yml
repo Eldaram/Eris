@@ -37,19 +37,8 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Configure Root Environment Variables
+      - name: Configure Environment Variables
         run: cp .env.example .env
-
-      - name: Configure Backend Environment Variables
-        run: |
-          cat > BackEnd/.env << 'EOF'
-          PORT=4000
-          DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/eris?schema=public"
-          MONGO_URI="mongodb://root:rootpassword@127.0.0.1:27017/eris?authSource=admin"
-          POCKETBASE_URL="http://127.0.0.1:8090"
-          POCKETBASE_ADMIN_EMAIL="admin@eris.local"
-          POCKETBASE_ADMIN_PASSWORD="admin_password_123"
-          EOF
 
       - name: Start Database Infrastructure
         run: docker compose up -d postgres mongodb pocketbase
@@ -81,7 +70,7 @@ jobs:
             sleep 1
           done
 
-      - name: Wait for PocketBase
+      - name: Wait for PocketBase & Initialize Admin
         run: |
           for i in $(seq 1 30); do
             if curl -s http://127.0.0.1:8090/api/health >/dev/null; then
@@ -91,13 +80,14 @@ jobs:
             echo "Waiting for PocketBase... ($i/30)"
             sleep 1
           done
+          docker compose run --rm pocketbase-init
 
       - name: Run Prisma Migrations
-        run: npm run db:migrate
+        run: npm run db:migrate:deploy
 
       - name: Run Tests
         run: npm run test:backend
 
       - name: Stop Database Infrastructure
         if: always()
-        run: docker compose down
+        run: docker compose down -v
