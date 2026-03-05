@@ -58,6 +58,14 @@ describe('RegisterView.vue', () => {
     })
 
     it('navigates to login on submit', async () => {
+        // Mock fetch to simulate successful registration
+        global.fetch = vi.fn(() =>
+            Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve({ id: 1, username: 'testuser', email: 'test@example.com' })
+            })
+        )
+
         // Spy on router.push
         const pushSpy = vi.spyOn(router, 'push')
 
@@ -78,7 +86,13 @@ describe('RegisterView.vue', () => {
         // Submit the form
         await wrapper.find('form').trigger('submit.prevent')
 
-        // Expect router.push to have been called with '/login'
-        expect(pushSpy).toHaveBeenCalledWith('/login')
+        // Wait for async operations
+        await new Promise(resolve => setTimeout(resolve, 0))
+
+        // Expect router.push to have been called with path and query
+        expect(pushSpy).toHaveBeenCalledWith({
+            path: '/login',
+            query: { registered: 'true' }
+        })
     })
 })

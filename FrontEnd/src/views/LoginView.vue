@@ -1,14 +1,43 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import AuthCard from '../components/AuthCard.vue'
 import AuthInput from '../components/AuthInput.vue'
 import AuthButton from '../components/AuthButton.vue'
+import NotificationCard from '../components/NotificationCard.vue'
 
 const router = useRouter()
+const route = useRoute()
 
 const username = ref('')
 const password = ref('')
+
+const notification = ref({
+  visible: false,
+  message: '',
+  type: 'success'
+})
+
+const showNotification = (message, type = 'success') => {
+  notification.value = {
+    visible: true,
+    message,
+    type
+  }
+}
+
+const closeNotification = () => {
+  notification.value.visible = false
+}
+
+onMounted(() => {
+  // Check if user was redirected from successful registration
+  if (route.query.registered === 'true') {
+    showNotification('Account created successfully! Please log in.', 'success')
+    // Clean up the query parameter
+    router.replace({ path: '/login' })
+  }
+})
 
 const handleLogin = () => {
   // TODO: Link to backend for real authentication later
@@ -44,6 +73,13 @@ const handleLogin = () => {
       </div>
     </form>
   </AuthCard>
+
+  <NotificationCard
+    :visible="notification.visible"
+    :message="notification.message"
+    :type="notification.type"
+    @close="closeNotification"
+  />
 </template>
 
 <style scoped>

@@ -23,6 +23,10 @@ defineProps({
   required: {
     type: Boolean,
     default: false
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -38,7 +42,8 @@ defineEmits(['update:modelValue'])
       @input="$emit('update:modelValue', $event.target.value)"
       :type="type" 
       :placeholder="placeholder" 
-      :required="required" 
+      :required="required"
+      :disabled="disabled"
     />
   </div>
 </template>
@@ -80,5 +85,10 @@ input:invalid:not(:placeholder-shown) {
 
 input:valid:not(:placeholder-shown) {
   border-color: var(--valid, #42b883);
+}
+
+input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>

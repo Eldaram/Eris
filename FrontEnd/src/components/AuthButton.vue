@@ -7,12 +7,16 @@ defineProps({
   type: {
     type: String,
     default: 'button'
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 })
 </script>
 
 <template>
-  <button :type="type" class="auth-button">
+  <button :type="type" :disabled="disabled" class="auth-button">
     {{ text }}
   </button>
 </template>
@@ -35,5 +39,11 @@ defineProps({
 
 .auth-button:hover {
   background-color: var(--primary-hover, #535bf2);
+}
+
+.auth-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--primary, #646cff);
 }
 </style>
