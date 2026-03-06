@@ -134,6 +134,65 @@ paths:
                     code: USERNAME_ALREADY_EXISTS
         '500':
           description: Internal server error
+  /api/users/login:
+    post:
+      tags:
+        - Users
+      summary: Login a user
+      description: Authenticates a user using their email and password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email address
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  description: Password
+                  example: SecurePassword123
+      responses:
+        '200':
+          description: User successfully authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    description: Authentication token
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400':
+          description: Validation error or missing credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidCredentials:
+                  value:
+                    error: Invalid email or password.
+                    code: INVALID_PASSWORD
+        '500':
+          description: Internal server error
   /api/messages:
     post:
       tags:

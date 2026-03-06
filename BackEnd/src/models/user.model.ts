@@ -27,6 +27,12 @@ export class UserModel {
         });
     }
 
+    static async findByPocketBaseId(pocketbaseId: string) {
+        return prisma.user.findUnique({
+            where: { pocketbaseId },
+        });
+    }
+
     // ========== PocketBase Operations ==========
 
     static async createInPocketBase(
@@ -42,6 +48,27 @@ export class UserModel {
             passwordConfirm,
             emailVisibility: false,
         });
+    }
+
+    static async authenticateWithPocketBase(email: string, password: string) {
+        // Authenticate the user. It mutates the global pb.authStore, so we clear it right after.
+        // For higher concurrency, consider instantiating a localized PocketBase client per request.
+        const authData = await pb.collection('users').authWithPassword(email, password);
+        pb.authStore.clear();
+        return authData;
+    }
+
+    static async verifyPocketBaseToken(token: string) {
+        // We create a transient PocketBase instance for token verification to avoid mutational race conditions
+        // on the shared global `pb` instance's auth store.
+        const transientPb = new (pb.constructor as any)(pb.baseUrl);
+        transientPb.authStore.save(token, null);
+
+        try {
+            return await transientPb.collection('users').authRefresh();
+        } finally {
+            transientPb.authStore.clear();
+        }
     }
 
     static async deleteInPocketBaseById(id: string) {
