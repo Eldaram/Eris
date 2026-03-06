@@ -11,6 +11,21 @@ dotenv.config({ path: path.join(__dirname, '../.env') });
 const app = express();
 const port = process.env.PORT || 3000;
 
+const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+app.use((req: Request, res: Response, next) => {
+    // Allow browser clients from the frontend app to call the API.
+    res.header('Access-Control-Allow-Origin', allowedOrigin);
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(204);
+    }
+
+    next();
+});
+
 app.use(express.json());
 
 app.get('/api/health', (req: Request, res: Response) => {

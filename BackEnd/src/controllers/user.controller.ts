@@ -28,6 +28,16 @@ export class UserController {
                     code: error.code,
                 });
             }
+
+            console.error('Unexpected error while creating user:', error);
+
+            if (process.env.NODE_ENV !== 'production') {
+                return res.status(500).json({
+                    error: 'Internal Server Error',
+                    details: error instanceof Error ? error.message : String(error),
+                });
+            }
+
             res.status(500).json({ error: 'Internal Server Error' });
         }
     }
