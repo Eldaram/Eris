@@ -1,17 +1,37 @@
 <script setup>
+import { ref } from 'vue'
 import ServerSideBar from '../components/ServerSideBar.vue'
 import RoomSideBar from '../components/RoomSideBar.vue'
 import UserProfileCard from '../components/UserProfileCard.vue'
 import ChatArea from '../components/ChatArea.vue'
 import MessageInput from '../components/MessageInput.vue'
 import ConnectedUsersSideBar from '../components/ConnectedUsersSideBar.vue'
+import NotificationCard from '../components/NotificationCard.vue'
+
+const notification = ref({
+  show: false,
+  message: '',
+  type: 'error'
+})
+
+const handleServerError = (errorMsg) => {
+  notification.value = {
+    show: true,
+    message: errorMsg,
+    type: 'error'
+  }
+}
+
+const closeNotification = () => {
+  notification.value.show = false
+}
 </script>
 
 <template>
   <div class="home-layout">
     <div class="navigation-panel">
       <div class="sidebars-container">
-        <ServerSideBar />
+        <ServerSideBar @server-error="handleServerError" />
         <div class="rooms-column">
           <RoomSideBar />
         </div>
@@ -25,6 +45,14 @@ import ConnectedUsersSideBar from '../components/ConnectedUsersSideBar.vue'
     </div>
     
     <ConnectedUsersSideBar />
+
+    <NotificationCard
+      :show="notification.show"
+      :message="notification.message"
+      :type="notification.type"
+      :visible="notification.show"
+      @close="closeNotification"
+    />
   </div>
 </template>
 
