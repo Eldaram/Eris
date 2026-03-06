@@ -1,5 +1,4 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
 import AuthButton from '../AuthButton.vue'
 
 describe('AuthButton.vue', () => {

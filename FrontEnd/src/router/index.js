@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
+import { authState } from '../services/auth'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -29,8 +30,7 @@ const router = createRouter({
 
 // Basic navigation guard
 router.beforeEach((to, from) => {
-    // TODO: Replace with actual authentication check
-    const isAuthenticated = false // Hardcoded to false for now, meaning they always see login first
+    const isAuthenticated = authState.isAuthenticated
 
     if (to.meta.requiresAuth && !isAuthenticated) {
         // If trying to access a restricted page without being logged in

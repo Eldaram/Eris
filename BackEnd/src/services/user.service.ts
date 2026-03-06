@@ -83,6 +83,47 @@ export class UserService {
         }
     }
 
+    static async loginUser(input: { email: string; password: string }) {
+        const normalizedEmail = this.normalizeAndValidateEmail(input.email);
+
+        try {
+            const authData = await UserModel.authenticateWithPocketBase(normalizedEmail, input.password);
+            const prismaUser = await UserModel.findByPocketBaseId(authData.record.id);
+
+            return {
+                user: prismaUser || {
+                    id: authData.record.id,
+                    username: authData.record.username,
+                    pocketbaseId: authData.record.id,
+                },
+                token: authData.token,
+            };
+        } catch (error: any) {
+            if (error?.status === 400 || error?.status === 403 || error?.status === 404) {
+                throw new UserInputError('INVALID_PASSWORD', 'Invalid email or password.', 401);
+            }
+            throw error;
+        }
+    }
+
+    static async verifyAuthToken(token: string) {
+        if (!token) {
+            throw new UserInputError('INVALID_PASSWORD', 'Token is required.', 401);
+        }
+
+        try {
+            const authData = await UserModel.verifyPocketBaseToken(token);
+            const prismaUser = await UserModel.findByPocketBaseId(authData.record.id);
+
+            return {
+                user: prismaUser || authData.record,
+                token: authData.token,
+            };
+        } catch (error: any) {
+            throw new UserInputError('INVALID_PASSWORD', 'Invalid or expired token.', 401);
+        }
+    }
+
     private static normalizeAndValidateUsername(username: string) {
         const normalized = username.trim();
         if (!normalized) {

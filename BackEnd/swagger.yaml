@@ -134,6 +134,95 @@ paths:
                     code: USERNAME_ALREADY_EXISTS
         '500':
           description: Internal server error
+  /api/users/me:
+    get:
+      tags:
+        - Users
+      summary: Get current logged-in user
+      description: Returns the user object attached to the provided connection token.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missingToken:
+                  value:
+                    error: Authentication token is missing or invalid format
+                    code: MISSING_TOKEN
+                invalidToken:
+                  value:
+                    error: Invalid or expired token.
+                    code: INVALID_PASSWORD
+  /api/users/login:
+    post:
+      tags:
+        - Users
+      summary: Login a user
+      description: Authenticates a user using their email and password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: Email address
+                  example: john@example.com
+                password:
+                  type: string
+                  format: password
+                  description: Password
+                  example: SecurePassword123
+      responses:
+        '200':
+          description: User successfully authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    description: Authentication token
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400':
+          description: Validation error or missing credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidCredentials:
+                  value:
+                    error: Invalid email or password.
+                    code: INVALID_PASSWORD
+        '500':
+          description: Internal server error
   /api/messages:
     post:
       tags:
@@ -253,3 +342,8 @@ components:
           type: string
           format: date-time
           description: The last update timestamp of the message
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

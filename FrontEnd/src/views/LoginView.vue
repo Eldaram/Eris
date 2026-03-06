@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { authService } from '../services/auth'
 import AuthCard from '../components/AuthCard.vue'
 import AuthInput from '../components/AuthInput.vue'
 import AuthButton from '../components/AuthButton.vue'
@@ -9,8 +10,9 @@ import NotificationCard from '../components/NotificationCard.vue'
 const router = useRouter()
 const route = useRoute()
 
-const username = ref('')
+const email = ref('')
 const password = ref('')
+const isLoading = ref(false)
 
 const notification = ref({
   visible: false,
@@ -39,10 +41,19 @@ onMounted(() => {
   }
 })
 
-const handleLogin = () => {
-  // TODO: Link to backend for real authentication later
-  // For now, this just visually logs in by navigating to home
-  router.push('/')
+const handleLogin = async () => {
+  isLoading.value = true
+  closeNotification()
+
+  try {
+    await authService.login(email.value, password.value)
+    // Redirect to home page upon successful login
+    router.push('/')
+  } catch (error) {
+    showNotification(error.message || 'Login failed', 'error')
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
 
@@ -50,11 +61,13 @@ const handleLogin = () => {
   <AuthCard title="Welcome to Eris" subtitle="Please log in to continue">
     <form @submit.prevent="handleLogin" class="login-form">
       <AuthInput
-        id="username"
-        v-model="username"
-        label="Username"
-        placeholder="Enter your username"
+        id="email"
+        v-model="email"
+        label="Email"
+        type="email"
+        placeholder="Enter your email"
         required
+        :disabled="isLoading"
       />
       
       <AuthInput
@@ -64,9 +77,10 @@ const handleLogin = () => {
         type="password"
         placeholder="Enter your password"
         required
+        :disabled="isLoading"
       />
       
-      <AuthButton text="Login" type="submit" />
+      <AuthButton :text="isLoading ? 'Logging in...' : 'Login'" type="submit" :disabled="isLoading" />
 
       <div class="register-link">
         Don't have an account? <router-link to="/register">Create one</router-link>
