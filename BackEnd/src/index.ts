@@ -1,8 +1,10 @@
 import express, { Request, Response } from 'express';
+import { createServer } from 'http';
 import dotenv from 'dotenv';
 import path from 'path';
 import { connectMongo } from './config/mongo';
 import { runPocketBaseMigrations } from './config/pb_migrations';
+import { initializeSocket } from './config/socket';
 import messageRoutes from './routes/messageRoutes';
 import userRoutes from './routes/userRoutes';
 import serverRoutes from './routes/serverRoutes';
@@ -10,6 +12,7 @@ import serverRoutes from './routes/serverRoutes';
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 const app = express();
+const httpServer = createServer(app);
 const port = process.env.PORT || 3000;
 
 const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
@@ -37,6 +40,7 @@ app.get('/api/health', (req: Request, res: Response) => {
 if (process.env.NODE_ENV !== 'test') {
     connectMongo();
     runPocketBaseMigrations();
+    initializeSocket(httpServer);
 }
 
 app.use('/api/messages', messageRoutes);
@@ -45,9 +49,11 @@ app.use('/api/servers', serverRoutes);
 
 // only listen if not imported (e.g., when testing)
 if (require.main === module) {
-    app.listen(port, () => {
+    httpServer.listen(port, () => {
         console.log(`Server is running on port ${port}`);
+        console.log(`Socket.IO is ready for real-time communication`);
     });
 }
 
 export default app;
+export { httpServer };
