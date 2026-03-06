@@ -1,12 +1,36 @@
 <script setup>
-// Empty for now, will hold server list later
+import { ref } from 'vue'
+import ServerCreationModal from './ServerCreationModal.vue'
+
+const emit = defineEmits(['server-error'])
+const showModal = ref(false)
+
+const handleOpenModal = () => {
+  showModal.value = true
+}
+
+const handleServerCreated = (server) => {
+  // In the future, we would refresh the server list here
+  console.log('Server created:', server)
+}
+
+const handleServerError = (errorMsg) => {
+  emit('server-error', errorMsg)
+}
 </script>
 
 <template>
   <div class="server-sidebar">
-    <div class="server-item empty-state">
+    <div class="server-item empty-state" @click="handleOpenModal">
       <span>+</span>
     </div>
+
+    <ServerCreationModal
+      :show="showModal"
+      @close="showModal = false"
+      @created="handleServerCreated"
+      @error="handleServerError"
+    />
   </div>
 </template>
 
