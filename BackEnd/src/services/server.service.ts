@@ -1,4 +1,5 @@
 import prisma from '../config/prisma';
+import { NotificationService } from './notification.service';
 
 type ServerErrorCode = 'INVALID_SERVER_NAME' | 'SERVER_CREATION_FAILED';
 
@@ -60,10 +61,18 @@ export class ServerService {
                     },
                 });
 
-                return { id: server.id };
+                return { id: server.id, name: server.name };
             });
 
-            return result;
+            // Emit notification after successful server creation
+            try {
+                NotificationService.notifyServerCreated(result.id, result.name, input.ownerId);
+            } catch (notifError) {
+                // Log but don't fail the operation if notification fails
+                console.error('Failed to send server creation notification:', notifError);
+            }
+
+            return { id: result.id };
         } catch (error) {
             if (error instanceof ServerInputError) {
                 throw error;
