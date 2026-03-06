@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import NotificationCard from '../NotificationCard.vue'
 
@@ -62,10 +61,10 @@ describe('NotificationCard', () => {
     })
 
     expect(wrapper.emitted('close')).toBeFalsy()
-    
+
     vi.advanceTimersByTime(4000)
     await wrapper.vm.$nextTick()
-    
+
     expect(wrapper.emitted()).toHaveProperty('close')
   })
 
@@ -80,10 +79,10 @@ describe('NotificationCard', () => {
 
     // Simulate mouse enter
     await wrapper.find('.notification-card').trigger('mouseenter')
-    
+
     vi.advanceTimersByTime(4000)
     await wrapper.vm.$nextTick()
-    
+
     // Should not have emitted close
     expect(wrapper.emitted('close')).toBeFalsy()
   })
@@ -100,10 +99,10 @@ describe('NotificationCard', () => {
     // Simulate mouse enter then leave
     await wrapper.find('.notification-card').trigger('mouseenter')
     await wrapper.find('.notification-card').trigger('mouseleave')
-    
+
     vi.advanceTimersByTime(4000)
     await wrapper.vm.$nextTick()
-    
+
     expect(wrapper.emitted()).toHaveProperty('close')
   })
 
