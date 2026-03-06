@@ -93,4 +93,56 @@ describe('API Health Check', () => {
         expect(loginRes.body).toHaveProperty('user');
         expect(loginRes.body.user.username).toBe(testUser.username);
     });
+
+    it('GET /api/users/me should return 401 if no token is provided', async () => {
+        const response = await request(app).get('/api/users/me');
+        expect(response.status).toBe(401);
+        expect(response.body.code).toBe('MISSING_TOKEN');
+    });
+
+    it('GET /api/users/me should return 401 if token is poorly formatted', async () => {
+        const response = await request(app)
+            .get('/api/users/me')
+            .set('Authorization', 'InvalidFormat 12345');
+        expect(response.status).toBe(401);
+        expect(response.body.code).toBe('MISSING_TOKEN');
+    });
+
+    it('GET /api/users/me should return 401 if token is invalid or expired', async () => {
+        const response = await request(app)
+            .get('/api/users/me')
+            .set('Authorization', 'Bearer invalid.token.string');
+        expect(response.status).toBe(401);
+        expect(response.body.code).toBe('INVALID_PASSWORD'); // from UserService
+    });
+
+    it('GET /api/users/me should return 200 and the user object if a valid token is provided', async () => {
+        // Create user and get token
+        const uniqueSuffix = Date.now().toString();
+        const testUser = {
+            username: `auth_test_${uniqueSuffix}`,
+            email: `auth_test_${uniqueSuffix}@example.com`,
+            password: 'ValidPassword123!',
+            confirmPassword: 'ValidPassword123!',
+        };
+
+        await request(app).post('/api/users').send(testUser);
+
+        const loginRes = await request(app)
+            .post('/api/users/login')
+            .send({
+                email: testUser.email,
+                password: testUser.password,
+            });
+
+        const token = loginRes.body.token;
+
+        // Use valid token
+        const authResponse = await request(app)
+            .get('/api/users/me')
+            .set('Authorization', `Bearer ${token}`);
+
+        expect(authResponse.status).toBe(200);
+        expect(authResponse.body.username).toBe(testUser.username);
+    });
 });

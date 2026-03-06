@@ -67,4 +67,13 @@ export class UserController {
             res.status(500).json({ error: 'Internal Server Error' });
         }
     }
+
+    static async getMe(req: Request, res: Response) {
+        // The user object is injected by the authMiddleware
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ error: 'User context not found' });
+        }
+        res.status(200).json(user);
+    }
 }

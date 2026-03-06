@@ -134,6 +134,36 @@ paths:
                     code: USERNAME_ALREADY_EXISTS
         '500':
           description: Internal server error
+  /api/users/me:
+    get:
+      tags:
+        - Users
+      summary: Get current logged-in user
+      description: Returns the user object attached to the provided connection token.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missingToken:
+                  value:
+                    error: Authentication token is missing or invalid format
+                    code: MISSING_TOKEN
+                invalidToken:
+                  value:
+                    error: Invalid or expired token.
+                    code: INVALID_PASSWORD
   /api/users/login:
     post:
       tags:
@@ -312,3 +342,8 @@ components:
           type: string
           format: date-time
           description: The last update timestamp of the message
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
