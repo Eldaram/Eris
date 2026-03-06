@@ -19,9 +19,12 @@ Table MongoDB_Messages {
 // B - POSTGRESQL (Relational Data)
 // ==========================================
 Table Postgres_Users {
-  id uuid [pk, note: 'Synced with Pocketbase User ID']
+  id uuid [pk]
   username varchar
+  pocketbase_id varchar [unique, note: 'References Pocketbase_User.id']
   created_at timestamp
+
+  Note: 'References PocketBase user account'
 }
 
 Table Postgres_User_Alias {

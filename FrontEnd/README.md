@@ -1,5 +1,50 @@
-# Vue 3 + Vite
+# Eris Frontend
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Vue 3 + Vite application for the Eris platform.
+
+## Setup
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Configure environment variables:**
+   Copy `.env.example` to `.env` and update values as needed:
+   ```bash
+   cp .env.example .env
+   ```
+
+   Environment variables:
+   - `VITE_API_URL` - Backend API URL (default: http://localhost:3000)
+
+3. **Run development server:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Run tests:**
+   ```bash
+   npm test
+   ```
+
+5. **Build for production:**
+   ```bash
+   npm run build
+   ```
+
+## Project Structure
+
+- `src/components/` - Reusable Vue components
+- `src/views/` - Page components (routes)
+- `src/router/` - Vue Router configuration
+- `src/assets/` - Static assets (images, styles)
+
+## Tech Stack
+
+- Vue 3 with `<script setup>` SFCs
+- Vite for build tooling
+- Vue Router for navigation
+- Vitest for unit testing
 
 Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).

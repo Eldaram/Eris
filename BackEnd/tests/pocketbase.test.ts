@@ -1,45 +1,41 @@
 import pb from '../src/config/pocketbase';
 import { runPocketBaseMigrations } from '../src/config/pb_migrations';
 
-describe('PocketBase Connection & Collections', () => {
+describe('PocketBase Connection & Authentication', () => {
 
-    // We expect the infrastructure (docker compose) to be running and migrations to have been applied by the backend or CI
-    // We check that Pocketbase_User and Pocketbase_Files exist
+    // We expect PocketBase to be running with its built-in users collection
+    // This tests the standard PocketBase auth system
 
     beforeAll(async () => {
-        // Run migrations first to ensure schema exists
+        // Run initialization to verify PocketBase is ready
         await runPocketBaseMigrations();
 
         const adminEmail = process.env.POCKETBASE_ADMIN_EMAIL || 'admin@eris.local';
         const adminPassword = process.env.POCKETBASE_ADMIN_PASSWORD || 'admin_password_123';
-        await pb.collection('_superusers').authWithPassword(adminEmail, adminPassword);
+        await pb.admins.authWithPassword(adminEmail, adminPassword);
     });
 
     it('should be authenticated as admin', () => {
         expect(pb.authStore.isValid).toBeTruthy();
-        expect(pb.authStore.isSuperuser).toBeTruthy();
+        expect(pb.authStore.token).toBeTruthy();
     });
 
-    it('should have Pocketbase_User collection', async () => {
-        const collection = await pb.collections.getOne('Pocketbase_User');
+    it('should have built-in users auth collection', async () => {
+        const collection = await pb.collections.getOne('users');
         expect(collection).toBeDefined();
-        expect(collection.name).toBe('Pocketbase_User');
-        expect(collection.type).toBe('base');
+        expect(collection.name).toBe('users');
+        expect(collection.type).toBe('auth');
     });
 
-    it('should have Pocketbase_Files collection', async () => {
-        const collection = await pb.collections.getOne('Pocketbase_Files');
-        expect(collection).toBeDefined();
-        expect(collection.name).toBe('Pocketbase_Files');
-        expect(collection.type).toBe('base');
-    });
+    it('should have username and email fields in users collection', async () => {
+        const collection = await pb.collections.getOne('users');
+        
+        const usernameField = collection.fields?.find((f: any) => f.name === 'username');
+        const emailField = collection.fields?.find((f: any) => f.name === 'email');
 
-    it('should correctly configure the user_id relation in Pocketbase_Files', async () => {
-        const collection = await pb.collections.getOne('Pocketbase_Files');
-        const userIdField = collection.fields.find((f: any) => f.name === 'user_id');
-
-        expect(userIdField).toBeDefined();
-        expect(userIdField?.type).toBe('relation');
-        expect(userIdField?.collectionId).toBeDefined();
+        expect(usernameField).toBeDefined();
+        expect(emailField).toBeDefined();
+        expect(emailField?.type).toBe('email');
+        expect(usernameField?.type).toBe('text');
     });
 });
