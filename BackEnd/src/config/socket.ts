@@ -36,16 +36,33 @@ export function initializeSocket(httpServer: HTTPServer): SocketIOServer {
     });
 
     // Connection handler
-    io.on('connection', (socket) => {
+    io.on('connection', (socket: any) => {
         console.log(`Client connected: ${socket.id}`);
+        const s = socket as any;
 
         // Handle ping event
-        socket.on('ping', () => {
+        s.on('ping', () => {
             console.log(`Ping received from ${socket.id}`);
         });
 
+        // Handle joining rooms
+        s.on('join', (data: { room: string }) => {
+            if (data?.room) {
+                s.join(data.room);
+                console.log(`[Socket] Client ${socket.id} joined room: ${data.room}`);
+            }
+        });
+
+        // Handle leaving rooms
+        s.on('leave', (data: { room: string }) => {
+            if (data?.room) {
+                s.leave(data.room);
+                console.log(`[Socket] Client ${socket.id} left room: ${data.room}`);
+            }
+        });
+
         // Handle disconnection
-        socket.on('disconnect', (reason) => {
+        s.on('disconnect', (reason: any) => {
             console.log(`Client disconnected: ${socket.id}, reason: ${reason}`);
         });
     });

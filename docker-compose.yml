@@ -11,6 +11,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-eris}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-eris}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   mongodb:
     image: mongo:6-jammy
@@ -24,6 +29,11 @@ services:
       MONGO_INITDB_DATABASE: ${MONGO_DB:-eris}
     volumes:
       - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --eval 'db.adminCommand({ping: 1})' --quiet"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   pocketbase:
     image: ghcr.io/muchobien/pocketbase:latest
@@ -54,6 +64,54 @@ services:
       sh -c "pocketbase superuser upsert $$PB_ADMIN_EMAIL $$PB_ADMIN_PASSWORD --dir=/pb_data"
     volumes:
       - pocketbase_data:/pb_data
+
+  backend:
+    image: node:20-alpine
+    container_name: eris-backend
+    restart: unless-stopped
+    working_dir: /app/BackEnd
+    ports:
+      - "4000:4000"
+    volumes:
+      - .:/app
+    environment:
+      - PORT=4000
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-eris}?schema=public
+      - MONGO_URI=mongodb://${MONGO_USER:-root}:${MONGO_PASSWORD:-rootpassword}@mongodb:27017/${MONGO_DB:-eris}?authSource=admin
+      - POCKETBASE_URL=http://pocketbase:8090
+      - POCKETBASE_ADMIN_EMAIL=${POCKETBASE_ADMIN_EMAIL:-admin@eris.local}
+      - POCKETBASE_ADMIN_PASSWORD=${POCKETBASE_ADMIN_PASSWORD:-admin_password_123}
+      - FRONTEND_URL=http://localhost:5173
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      pocketbase:
+        condition: service_healthy
+    command: >
+      sh -c "npm install && npx prisma generate && npx prisma migrate deploy && npm run dev"
+
+  frontend:
+    image: node:20-alpine
+    container_name: eris-frontend
+    restart: unless-stopped
+    working_dir: /app/FrontEnd
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/app
+    environment:
+      - VITE_API_URL=http://localhost:4000
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    depends_on:
+      backend:
+        condition: service_started
+    command: >
+      sh -c "npm install && npm run dev -- --host"
 
 volumes:
   postgres_data:

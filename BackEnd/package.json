@@ -5,7 +5,7 @@
     "main": "src/index.ts",
     "scripts": {
         "start": "ts-node src/index.ts",
-        "dev": "nodemon src/index.ts",
+        "dev": "nodemon -L src/index.ts",
         "test": "jest",
         "prisma:generate": "prisma generate",
         "prisma:migrate": "prisma migrate dev"

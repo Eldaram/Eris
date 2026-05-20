@@ -88,14 +88,15 @@ export class UserService {
 
         try {
             const authData = await UserModel.authenticateWithPocketBase(normalizedEmail, input.password);
-            const prismaUser = await UserModel.findByPocketBaseId(authData.record.id);
+            let prismaUser = await UserModel.findByPocketBaseId(authData.record.id);
+
+            if (!prismaUser) {
+                console.log(`[UserService] User ${authData.record.username} exists in PocketBase but is missing in Postgres. Syncing...`);
+                prismaUser = await UserModel.createInPrisma(authData.record.username, authData.record.id);
+            }
 
             return {
-                user: prismaUser || {
-                    id: authData.record.id,
-                    username: authData.record.username,
-                    pocketbaseId: authData.record.id,
-                },
+                user: prismaUser,
                 token: authData.token,
             };
         } catch (error: any) {
@@ -113,10 +114,15 @@ export class UserService {
 
         try {
             const authData = await UserModel.verifyPocketBaseToken(token);
-            const prismaUser = await UserModel.findByPocketBaseId(authData.record.id);
+            let prismaUser = await UserModel.findByPocketBaseId(authData.record.id);
+
+            if (!prismaUser) {
+                console.log(`[UserService] Token verified for ${authData.record.username} but user is missing in Postgres. Syncing...`);
+                prismaUser = await UserModel.createInPrisma(authData.record.username, authData.record.id);
+            }
 
             return {
-                user: prismaUser || authData.record,
+                user: prismaUser,
                 token: authData.token,
             };
         } catch (error: any) {

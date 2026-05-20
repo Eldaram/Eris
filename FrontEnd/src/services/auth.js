@@ -21,13 +21,33 @@ export const authService = {
             try {
                 const { token, user } = JSON.parse(storedData)
 
-                // For security, optionally verify token against backend right here
-                // Currently, we trust the stored state if it exists until a backend call fails with 401
-
                 if (token) {
+                    // Synchronously set initial auth state to avoid unauthenticated redirects
                     authState.token = token
                     authState.user = user
                     authState.isAuthenticated = true
+
+                    // Asynchronously verify token and sync user with PostgreSQL in the background
+                    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+                    fetch(`${apiUrl}/api/users/me`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    })
+                    .then(async (response) => {
+                        if (response.ok) {
+                            const freshUser = await response.json()
+                            authState.user = freshUser
+                            localStorage.setItem(STATE_KEY, JSON.stringify({ token, user: freshUser }))
+                        } else if (response.status === 401) {
+                            console.warn('[AuthService] Token validation failed in background. Logging out.');
+                            this.logout()
+                        }
+                    })
+                    .catch((err) => {
+                        console.error('[AuthService] Failed background token validation check:', err)
+                    })
                 }
             } catch (e) {
                 console.error('Failed to parse stored auth state', e)

@@ -83,6 +83,7 @@ export interface MessageReceivedNotification extends BaseNotification {
         messageId: string;
         roomId: string;
         senderId: string;
+        senderUsername?: string;
         content: string;
     };
 }
@@ -117,6 +118,8 @@ export interface ServerToClientEvents {
 export interface ClientToServerEvents {
     // For future client-initiated events
     ping: () => void;
+    join: (data: { room: string }) => void;
+    leave: (data: { room: string }) => void;
 }
 
 export interface InterServerEvents {

@@ -1,5 +1,8 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { chatService } from '../services/chat'
+import { socketService } from '../services/socket'
+import { authState } from '../services/auth'
 import ServerSideBar from '../components/ServerSideBar.vue'
 import RoomSideBar from '../components/RoomSideBar.vue'
 import UserProfileCard from '../components/UserProfileCard.vue'
@@ -25,6 +28,16 @@ const handleServerError = (errorMsg) => {
 const closeNotification = () => {
   notification.value.show = false
 }
+
+// Initialize real-time chat service connection
+onMounted(() => {
+  chatService.init()
+})
+
+// Clean up WebSocket connection when leaving
+onUnmounted(() => {
+  socketService.disconnect()
+})
 </script>
 
 <template>
@@ -36,7 +49,7 @@ const closeNotification = () => {
           <RoomSideBar />
         </div>
       </div>
-      <UserProfileCard username="Current User" status="Online" />
+      <UserProfileCard :username="authState.user?.username || 'Current User'" status="Online" />
     </div>
     
     <div class="chat-column">
