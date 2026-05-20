@@ -29,7 +29,11 @@ export class UserController {
                 });
             }
 
-            console.error('Unexpected error while creating user:', error);
+            if (error instanceof Error && 'response' in error && (error as any).response?.data) {
+                console.error('PocketBase error while creating user:', (error as any).response.data);
+            } else {
+                console.error('Unexpected error while creating user:', error);
+            }
 
             if (process.env.NODE_ENV !== 'production') {
                 return res.status(500).json({

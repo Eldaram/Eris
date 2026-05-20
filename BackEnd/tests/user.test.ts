@@ -1,11 +1,13 @@
 import prisma from '../src/config/prisma';
 import { UserService } from '../src/services/user.service';
 import { UserModel } from '../src/models/user.model';
+import { randomUUID } from 'crypto';
 
 describe('UserService & Auto-Sync Integration Tests', () => {
-    const testUsername = `sync_user_${Date.now()}`;
-    const testEmail = `sync_user_${Date.now()}@eris.local`;
-    const testPassword = 'Password123!';
+    const uniqueSuffix = randomUUID().replace(/-/g, '').slice(0, 8);
+    const testUsername = `sync_${uniqueSuffix}`;
+    const testEmail = `sync_user_${uniqueSuffix}@eris.local`;
+    const testPassword = 'ValidPassword123!';
 
     let pocketbaseId: string;
 
@@ -17,12 +19,24 @@ describe('UserService & Auto-Sync Integration Tests', () => {
         // Clean up created user in Postgres and PocketBase
         if (pocketbaseId) {
             try {
-                await UserModel.deleteInPocketBaseById(pocketbaseId);
-            } catch (err) {}
-            try {
-                await prisma.user.deleteMany({
-                    where: { pocketbaseId }
+                const user = await prisma.user.findUnique({
+                    where: { pocketbaseId },
+                    select: { id: true },
                 });
+
+                if (user) {
+                    await prisma.$transaction([
+                        prisma.userAlias.deleteMany({ where: { userId: user.id } }),
+                        prisma.roomParticipant.deleteMany({ where: { userId: user.id } }),
+                        prisma.userPerServer.deleteMany({ where: { userId: user.id } }),
+                        prisma.serverInvite.deleteMany({ where: { creatorId: user.id } }),
+                        prisma.room.deleteMany({ where: { server: { ownerId: user.id } } }),
+                        prisma.server.deleteMany({ where: { ownerId: user.id } }),
+                        prisma.user.delete({ where: { id: user.id } }),
+                    ]);
+                }
+
+                await UserModel.deleteInPocketBaseById(pocketbaseId);
             } catch (err) {}
         }
         await prisma.$disconnect();
