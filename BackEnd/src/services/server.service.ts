@@ -1,7 +1,7 @@
 import prisma from '../config/prisma';
 import { NotificationService } from './notification.service';
 
-type ServerErrorCode = 'INVALID_SERVER_NAME' | 'SERVER_CREATION_FAILED';
+type ServerErrorCode = 'INVALID_SERVER_NAME' | 'SERVER_CREATION_FAILED' | 'ACCESS_DENIED';
 
 export class ServerInputError extends Error {
     constructor(
@@ -80,5 +80,57 @@ export class ServerService {
             console.error('Unexpected error while creating server:', error);
             throw new ServerInputError('SERVER_CREATION_FAILED', 'Failed to create the server.', 500);
         }
+    }
+
+    /**
+     * Returns the list of servers the given user is a member of.
+     */
+    static async listServersForUser(userId: string): Promise<Array<{ id: string; name: string; ownerId: string }>> {
+        const servers = await prisma.server.findMany({
+            where: {
+                users: {
+                    some: { userId },
+                },
+            },
+            select: {
+                id: true,
+                name: true,
+                ownerId: true,
+            },
+            orderBy: { name: 'asc' },
+        });
+
+        return servers;
+    }
+
+    /**
+     * Returns channels (rooms) for a server if the requester is a member.
+     */
+    static async listChannelsForServer(input: { serverId: string; requesterId: string }) {
+        const { serverId, requesterId } = input;
+
+        // Verify membership
+        const membership = await prisma.userPerServer.findFirst({
+            where: {
+                serverId,
+                userId: requesterId,
+            },
+        });
+
+        if (!membership) {
+            throw new ServerInputError('ACCESS_DENIED', 'Access denied to server channels.', 403);
+        }
+
+        const channels = await prisma.room.findMany({
+            where: { serverId },
+            select: {
+                id: true,
+                name: true,
+                isDm: true,
+            },
+            orderBy: { name: 'asc' },
+        });
+
+        return channels;
     }
 }

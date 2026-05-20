@@ -55,4 +55,42 @@ export class ServerController {
             return res.status(500).json({ error: 'Internal Server Error' });
         }
     }
+
+    static async listServers(req: Request, res: Response) {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ error: 'Authentication required.', code: 'UNAUTHORIZED' });
+        }
+
+        try {
+            const servers = await ServerService.listServersForUser(user.id);
+            return res.status(200).json({ servers });
+        } catch (error) {
+            console.error('Unexpected error while listing servers:', error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
+    static async getChannels(req: Request, res: Response) {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ error: 'Authentication required.', code: 'UNAUTHORIZED' });
+        }
+
+        const { serverId } = req.params;
+        if (!serverId) {
+            return res.status(400).json({ error: 'serverId is required.', code: 'INVALID_SERVER_ID' });
+        }
+
+        try {
+            const channels = await ServerService.listChannelsForServer({ serverId, requesterId: user.id });
+            return res.status(200).json({ channels });
+        } catch (error) {
+            if (error instanceof ServerInputError) {
+                return res.status(error.statusCode).json({ error: error.message, code: error.code });
+            }
+            console.error('Unexpected error while listing channels:', error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
 }

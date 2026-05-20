@@ -6,5 +6,7 @@ const router = Router();
 
 // All server routes require authentication
 router.post('/', authMiddleware, ServerController.createServer);
+router.get('/', authMiddleware, ServerController.listServers);
+router.get('/:serverId/channels', authMiddleware, ServerController.getChannels);
 
 export default router;
