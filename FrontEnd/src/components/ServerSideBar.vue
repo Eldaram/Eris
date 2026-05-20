@@ -1,21 +1,47 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import ServerCreationModal from './ServerCreationModal.vue'
+import { serverService } from '../services/server'
 
-const emit = defineEmits(['server-error'])
+const emit = defineEmits(['server-error', 'server-selected'])
 const showModal = ref(false)
+const servers = ref([])
+const selectedServerId = ref(null)
 
 const handleOpenModal = () => {
   showModal.value = true
 }
 
-const handleServerCreated = (server) => {
-  // In the future, we would refresh the server list here
-  console.log('Server created:', server)
+const loadServers = async () => {
+  try {
+    servers.value = await serverService.listServers()
+    if (servers.value.length > 0 && !selectedServerId.value) {
+      selectServer(servers.value[0].id)
+    }
+  } catch (err) {
+    emit('server-error', err.message || 'Failed to load servers')
+  }
+}
+
+onMounted(() => {
+  loadServers()
+})
+
+const handleServerCreated = async (server) => {
+  // Refresh server list from API to get full details, then select the newly created one
+  await loadServers()
+  if (server && server.id) {
+    selectServer(server.id)
+  }
 }
 
 const handleServerError = (errorMsg) => {
   emit('server-error', errorMsg)
+}
+
+const selectServer = (server) => {
+  selectedServerId.value = server.id
+  emit('server-selected', server)
 }
 </script>
 
@@ -23,6 +49,10 @@ const handleServerError = (errorMsg) => {
   <div class="server-sidebar">
     <div class="server-item empty-state" @click="handleOpenModal">
       <span>+</span>
+    </div>
+
+    <div v-for="srv in servers" :key="srv.id" class="server-item" :class="{ selected: srv.id === selectedServerId }" @click="selectServer(srv)">
+      <span>{{ srv.name.charAt(0).toUpperCase() }}</span>
     </div>
 
     <ServerCreationModal
@@ -64,6 +94,10 @@ const handleServerError = (errorMsg) => {
 .server-item:hover {
   border-radius: 30%;
   background-color: var(--primary, #B0228C);
+}
+
+.server-item.selected {
+  outline: 2px solid var(--primary, #B0228C);
 }
 
 .empty-state {

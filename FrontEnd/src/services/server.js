@@ -31,4 +31,54 @@ export const serverService = {
             throw error;
         }
     }
+    ,
+    /**
+     * List servers for authenticated user
+     */
+    async listServers() {
+        try {
+            const response = await fetch(`${API_URL}/api/servers`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeader()
+                }
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to fetch servers');
+            }
+
+            return data.servers || [];
+        } catch (error) {
+            console.error('List servers error:', error);
+            throw error;
+        }
+    },
+
+    /**
+     * Get channels for a server
+     */
+    async getChannels(serverId) {
+        try {
+            const response = await fetch(`${API_URL}/api/servers/${serverId}/channels`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeader()
+                }
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to fetch channels');
+            }
+
+            return data.channels || [];
+        } catch (error) {
+            console.error('Get channels error:', error);
+            throw error;
+        }
+    }
 };

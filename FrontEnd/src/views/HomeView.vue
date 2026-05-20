@@ -17,6 +17,8 @@ const notification = ref({
   type: 'error'
 })
 
+const selectedServer = ref(null)
+
 const handleServerError = (errorMsg) => {
   notification.value = {
     show: true,
@@ -44,9 +46,9 @@ onUnmounted(() => {
   <div class="home-layout">
     <div class="navigation-panel">
       <div class="sidebars-container">
-        <ServerSideBar @server-error="handleServerError" />
+        <ServerSideBar @server-error="handleServerError" @server-selected="selectedServer = $event" />
         <div class="rooms-column">
-          <RoomSideBar />
+          <RoomSideBar :selectedServer="selectedServer" />
         </div>
       </div>
       <UserProfileCard :username="authState.user?.username || 'Current User'" status="Online" />
