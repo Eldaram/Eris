@@ -6,6 +6,10 @@ import { Notification } from '../types/notifications';
  * It provides methods to broadcast notifications to all clients or specific rooms.
  */
 export class NotificationService {
+    private static isSocketUnavailableError(error: unknown): boolean {
+        return error instanceof Error && error.message.includes('Socket.IO has not been initialized');
+    }
+
     /**
      * Emit a notification to all connected clients
      * @param notification - The notification to emit
@@ -16,7 +20,9 @@ export class NotificationService {
             io.emit('notification', notification);
             console.log(`[NotificationService] Emitted to all: ${notification.type}`);
         } catch (error) {
-            console.error('[NotificationService] Failed to emit notification:', error);
+            if (!this.isSocketUnavailableError(error)) {
+                console.error('[NotificationService] Failed to emit notification:', error);
+            }
         }
     }
 
@@ -31,7 +37,9 @@ export class NotificationService {
             io.to(`server:${serverId}`).emit('notification', notification);
             console.log(`[NotificationService] Emitted to server ${serverId}: ${notification.type}`);
         } catch (error) {
-            console.error('[NotificationService] Failed to emit notification:', error);
+            if (!this.isSocketUnavailableError(error)) {
+                console.error('[NotificationService] Failed to emit notification:', error);
+            }
         }
     }
 
@@ -46,7 +54,9 @@ export class NotificationService {
             io.to(`room:${roomId}`).emit('notification', notification);
             console.log(`[NotificationService] Emitted to room ${roomId}: ${notification.type}`);
         } catch (error) {
-            console.error('[NotificationService] Failed to emit notification:', error);
+            if (!this.isSocketUnavailableError(error)) {
+                console.error('[NotificationService] Failed to emit notification:', error);
+            }
         }
     }
 
@@ -61,7 +71,9 @@ export class NotificationService {
             io.to(`user:${userId}`).emit('notification', notification);
             console.log(`[NotificationService] Emitted to user ${userId}: ${notification.type}`);
         } catch (error) {
-            console.error('[NotificationService] Failed to emit notification:', error);
+            if (!this.isSocketUnavailableError(error)) {
+                console.error('[NotificationService] Failed to emit notification:', error);
+            }
         }
     }
 
