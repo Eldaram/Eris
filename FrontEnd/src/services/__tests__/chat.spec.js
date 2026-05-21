@@ -79,7 +79,7 @@ describe('chatService', () => {
             })
         )
 
-        const fetchPromise = chatService.fetchMessages('general')
+        const fetchPromise = chatService.fetchMessages('general', { reset: true })
         expect(chatState.isLoading).toBe(true)
 
         await fetchPromise
