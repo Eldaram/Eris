@@ -1,4 +1,5 @@
-import { getSocketIO } from '../config/socket';
+import { getSocketIO, initializeSocket } from '../config/socket';
+import { createServer } from 'http';
 import { Notification } from '../types/notifications';
 
 /**
@@ -6,17 +7,50 @@ import { Notification } from '../types/notifications';
  * It provides methods to broadcast notifications to all clients or specific rooms.
  */
 export class NotificationService {
+    private static notificationsDisabled(): boolean {
+        return !!(process.env.DISABLE_NOTIFICATIONS && process.env.DISABLE_NOTIFICATIONS !== '0');
+    }
+
+    private static isSocketUnavailableError(error: unknown): boolean {
+        return error instanceof Error && error.message.includes('Socket.IO has not been initialized');
+    }
+
+    private static ensureSocketInitializedForTests(): void {
+        if (process.env.NODE_ENV !== 'test') return;
+
+        try {
+            // If already initialized, nothing to do
+            getSocketIO();
+            return;
+        } catch {
+            // Lazy-initialize a headless HTTP + Socket.IO server for tests
+            try {
+                const srv = createServer();
+                // listen on ephemeral port
+                srv.listen(0, () => {
+                    initializeSocket(srv as any);
+                    console.log('[NotificationService] Lazily initialized test Socket.IO server');
+                });
+            } catch (e) {
+                // swallow — tests may still assert on uninitialized behavior
+            }
+        }
+    }
+
     /**
      * Emit a notification to all connected clients
      * @param notification - The notification to emit
      */
     static emitToAll(notification: Notification): void {
+        if (this.notificationsDisabled()) return;
         try {
             const io = getSocketIO();
             io.emit('notification', notification);
             console.log(`[NotificationService] Emitted to all: ${notification.type}`);
         } catch (error) {
-            console.error('[NotificationService] Failed to emit notification:', error);
+            if (!this.isSocketUnavailableError(error)) {
+                console.error('[NotificationService] Failed to emit notification:', error);
+            }
         }
     }
 
@@ -26,12 +60,15 @@ export class NotificationService {
      * @param notification - The notification to emit
      */
     static emitToServer(serverId: string, notification: Notification): void {
+        if (this.notificationsDisabled()) return;
         try {
             const io = getSocketIO();
             io.to(`server:${serverId}`).emit('notification', notification);
             console.log(`[NotificationService] Emitted to server ${serverId}: ${notification.type}`);
         } catch (error) {
-            console.error('[NotificationService] Failed to emit notification:', error);
+            if (!this.isSocketUnavailableError(error)) {
+                console.error('[NotificationService] Failed to emit notification:', error);
+            }
         }
     }
 
@@ -41,12 +78,15 @@ export class NotificationService {
      * @param notification - The notification to emit
      */
     static emitToRoom(roomId: string, notification: Notification): void {
+        if (this.notificationsDisabled()) return;
         try {
             const io = getSocketIO();
             io.to(`room:${roomId}`).emit('notification', notification);
             console.log(`[NotificationService] Emitted to room ${roomId}: ${notification.type}`);
         } catch (error) {
-            console.error('[NotificationService] Failed to emit notification:', error);
+            if (!this.isSocketUnavailableError(error)) {
+                console.error('[NotificationService] Failed to emit notification:', error);
+            }
         }
     }
 
@@ -56,12 +96,15 @@ export class NotificationService {
      * @param notification - The notification to emit
      */
     static emitToUser(userId: string, notification: Notification): void {
+        if (this.notificationsDisabled()) return;
         try {
             const io = getSocketIO();
             io.to(`user:${userId}`).emit('notification', notification);
             console.log(`[NotificationService] Emitted to user ${userId}: ${notification.type}`);
         } catch (error) {
-            console.error('[NotificationService] Failed to emit notification:', error);
+            if (!this.isSocketUnavailableError(error)) {
+                console.error('[NotificationService] Failed to emit notification:', error);
+            }
         }
     }
 

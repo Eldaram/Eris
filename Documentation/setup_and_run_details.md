@@ -78,6 +78,11 @@ npm run db:up
 ```
 This starts all containers. The `pocketbase-init` service will automatically create the superuser account once PocketBase is healthy. This is **idempotent** — safe to run multiple times.
 
+To apply the PocketBase setup logic used by the tests and CI (schema/bootstrap checks), run:
+```sh
+npm run pb:setup
+```
+
 ### Database Migrations (PostgreSQL)
 After the databases are running, apply Prisma migrations:
 ```sh
@@ -111,6 +116,7 @@ Two independent jobs run on every trigger:
    - Starts PostgreSQL, MongoDB, and PocketBase containers
    - Waits for each service to be healthy
    - Runs `docker compose run --rm pocketbase-init` to create the PocketBase admin
+   - Runs the PocketBase setup script so the expected auth collection configuration is applied before tests
    - Runs `prisma migrate deploy` (non-interactive, CI-safe)
    - Executes the Jest test suite
    - Tears down all containers **and volumes** (`docker compose down -v`) even on failure

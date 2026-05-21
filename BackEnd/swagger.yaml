@@ -307,6 +307,37 @@ paths:
                   value:
                     error: Failed to create the server.
                     code: SERVER_CREATION_FAILED
+      get:
+        tags:
+          - Servers
+        summary: List servers for the authenticated user
+        description: Returns the list of servers the authenticated user is a member of.
+        security:
+          - bearerAuth: []
+        responses:
+          '200':
+            description: A list of servers
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    servers:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Server'
+          '401':
+            description: Unauthorized — missing or invalid authentication token
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
+          '500':
+            description: Internal server error
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Error'
   /api/messages:
     post:
       tags:
@@ -368,6 +399,52 @@ paths:
                   $ref: '#/components/schemas/Message'
         '500':
           description: Internal server error
+
+  /api/servers/{serverId}/channels:
+    get:
+      tags:
+        - Servers
+      summary: List channels for a server
+      description: Returns channels (rooms) for the specified server if the requester is a member.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: serverId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the server to retrieve channels for
+      responses:
+        '200':
+          description: A list of channels
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  channels:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Channel'
+        '401':
+          description: Unauthorized — missing or invalid authentication token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden — requester is not a member of the server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
 components:
   schemas:
@@ -431,6 +508,30 @@ components:
           type: string
           format: date-time
           description: The last update timestamp of the message
+    Server:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Server unique identifier
+        name:
+          type: string
+          description: Server name
+        ownerId:
+          type: string
+          description: ID of the user who owns the server
+    Channel:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Channel (room) unique identifier
+        name:
+          type: string
+          description: Channel name
+        isDm:
+          type: boolean
+          description: Whether this channel is a direct message channel
   securitySchemes:
     bearerAuth:
       type: http

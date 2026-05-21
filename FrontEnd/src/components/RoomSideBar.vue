@@ -1,19 +1,62 @@
 <script setup>
-// Empty for now, will hold room list later
+import { ref, watch } from 'vue'
+import { serverService } from '../services/server'
+
+const props = defineProps({
+  selectedServer: {
+    type: Object,
+    required: false,
+  }
+})
+
+const channels = ref([])
+const loading = ref(false)
+const error = ref(null)
+
+watch(() => props.selectedServer, async (newServer) => {
+  channels.value = []
+  error.value = null
+  if (!newServer || !newServer.id) return
+  loading.value = true
+  try {
+    channels.value = await serverService.getChannels(newServer.id)
+  } catch (err) {
+    error.value = err.message || 'Failed to load channels'
+  } finally {
+    loading.value = false
+  }
+})
 </script>
 
 <template>
   <div class="room-sidebar">
     <div class="sidebar-header">
-      <h2>Rooms</h2>
+      <h2>{{ props.selectedServer?.name || 'Rooms' }}</h2>
     </div>
     <div class="room-list">
-      <div class="room-item">
-        <span class="hashtag">#</span> general
-      </div>
-      <div class="room-item empty-state">
-        <span class="text">No other rooms</span>
-      </div>
+      <!-- If no server selected, show default static sidebar -->
+      <template v-if="!props.selectedServer">
+        <div class="room-item">
+          <span class="hashtag">#</span> general
+        </div>
+        <div class="room-item empty-state">
+          <span class="text">No other rooms</span>
+        </div>
+      </template>
+
+      <!-- When a server is selected, show channels fetched from API -->
+      <template v-else>
+        <div v-if="loading" class="room-item">Loading...</div>
+        <div v-else>
+          <div v-if="channels.length === 0" class="room-item empty-state">
+            <span class="text">No rooms</span>
+          </div>
+          <div v-for="ch in channels" :key="ch.id" class="room-item">
+            <span class="hashtag">#</span> {{ ch.name }}
+          </div>
+        </div>
+        <div v-if="error" class="room-item">{{ error }}</div>
+      </template>
     </div>
   </div>
 </template>
