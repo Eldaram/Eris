@@ -84,6 +84,9 @@ jobs:
           done
           docker compose run --rm pocketbase-init
 
+      - name: Apply PocketBase Setup
+        run: npm run pb:setup
+
       - name: Run Prisma Migrations
         run: npm run db:migrate:deploy
 
