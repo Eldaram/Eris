@@ -6,7 +6,7 @@ defineProps({
   },
   subtitle: {
     type: String,
-    required: false
+    default: ''
   }
 })
 </script>
@@ -15,9 +15,11 @@ defineProps({
   <div class="auth-container">
     <div class="auth-card">
       <h1>{{ title }}</h1>
-      <p v-if="subtitle">{{ subtitle }}</p>
+      <p v-if="subtitle">
+        {{ subtitle }}
+      </p>
       
-      <slot></slot>
+      <slot />
     </div>
   </div>
 </template>

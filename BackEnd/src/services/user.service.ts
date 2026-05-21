@@ -72,7 +72,7 @@ export class UserService {
 
         try {
             return await UserModel.createInPrisma(normalizedUsername, pbUser.id);
-        } catch (error) {
+        } catch {
             // Compensation step to avoid leaving orphan users in PocketBase.
             try {
                 await UserModel.deleteInPocketBaseById(pbUser.id);
@@ -125,7 +125,7 @@ export class UserService {
                 user: prismaUser,
                 token: authData.token,
             };
-        } catch (error: any) {
+        } catch {
             throw new UserInputError('INVALID_PASSWORD', 'Invalid or expired token.', 401);
         }
     }

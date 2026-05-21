@@ -63,11 +63,20 @@ defineExpose({
 
 <template>
   <div class="server-sidebar">
-    <div class="server-item empty-state" @click="handleOpenModal">
+    <div
+      class="server-item empty-state"
+      @click="handleOpenModal"
+    >
       <span>+</span>
     </div>
 
-    <div v-for="srv in servers" :key="srv.id" class="server-item" :class="{ selected: srv.id === selectedServerId }" @click="selectServer(srv)">
+    <div
+      v-for="srv in servers"
+      :key="srv.id"
+      class="server-item"
+      :class="{ selected: srv.id === selectedServerId }"
+      @click="selectServer(srv)"
+    >
       <span>{{ srv.name.charAt(0).toUpperCase() }}</span>
     </div>
 

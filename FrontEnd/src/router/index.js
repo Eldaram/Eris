@@ -35,7 +35,7 @@ const router = createRouter({
 })
 
 // Basic navigation guard
-router.beforeEach((to, from) => {
+router.beforeEach((to) => {
     const isAuthenticated = authState.isAuthenticated
 
     if (to.meta.requiresAuth && !isAuthenticated) {

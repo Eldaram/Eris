@@ -16,17 +16,17 @@ try {
 		const addr: any = testServer.address();
 		console.log(`[jest.setup] Test Socket.IO server listening on port ${addr?.port}`);
 	});
-} catch (err) {
-	console.error('[jest.setup] Failed to initialize test Socket.IO server:', err);
+} catch {
+	console.error('[jest.setup] Failed to initialize test Socket.IO server');
 }
 
 // Ensure we close socket on process exit
 process.on('exit', async () => {
 	try {
 		await closeSocket();
-	} catch (e) {}
+	} catch {}
 	try {
 		testServer.close();
-	} catch (e) {}
+	} catch {}
 });
 

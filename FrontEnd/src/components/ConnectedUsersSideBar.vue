@@ -5,28 +5,38 @@
 <template>
   <div class="connected-users-sidebar">
     <div class="users-group">
-      <div class="group-title">ONLINE — 2</div>
-      <div class="user-item">
-        <div class="user-avatar">
-          <div class="status-indicator online"></div>
-        </div>
-        <div class="user-name">Alice</div>
+      <div class="group-title">
+        ONLINE — 2
       </div>
       <div class="user-item">
         <div class="user-avatar">
-          <div class="status-indicator dnd"></div>
+          <div class="status-indicator online" />
         </div>
-        <div class="user-name">Bob</div>
+        <div class="user-name">
+          Alice
+        </div>
+      </div>
+      <div class="user-item">
+        <div class="user-avatar">
+          <div class="status-indicator dnd" />
+        </div>
+        <div class="user-name">
+          Bob
+        </div>
       </div>
     </div>
     
     <div class="users-group">
-      <div class="group-title">OFFLINE — 1</div>
+      <div class="group-title">
+        OFFLINE — 1
+      </div>
       <div class="user-item offline">
         <div class="user-avatar">
-          <div class="status-indicator invisible"></div>
+          <div class="status-indicator invisible" />
         </div>
-        <div class="user-name">Charlie</div>
+        <div class="user-name">
+          Charlie
+        </div>
       </div>
     </div>
   </div>

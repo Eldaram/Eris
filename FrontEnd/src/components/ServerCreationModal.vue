@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { serverService } from '../services/server'
 
-const props = defineProps({
+defineProps({
   show: {
     type: Boolean,
     required: true
@@ -37,11 +37,20 @@ const handleSubmit = async () => {
 
 <template>
   <Teleport to="body">
-    <div v-if="show" class="modal-overlay" @click.self="handleClose">
+    <div
+      v-if="show"
+      class="modal-overlay"
+      @click.self="handleClose"
+    >
       <div class="modal-content">
         <header class="modal-header">
           <h2>Create a Server</h2>
-          <button class="close-btn" @click="handleClose">×</button>
+          <button
+            class="close-btn"
+            @click="handleClose"
+          >
+            ×
+          </button>
         </header>
 
         <main class="modal-body">
@@ -55,18 +64,22 @@ const handleSubmit = async () => {
               placeholder="Enter server name"
               :disabled="isSubmitting"
               @keyup.enter="handleSubmit"
-            />
+            >
           </div>
         </main>
 
         <footer class="modal-footer">
-          <button class="cancel-btn" @click="handleClose" :disabled="isSubmitting">
+          <button
+            class="cancel-btn"
+            :disabled="isSubmitting"
+            @click="handleClose"
+          >
             Cancel
           </button>
           <button
             class="create-btn"
-            @click="handleSubmit"
             :disabled="isSubmitting || !serverName.trim()"
+            @click="handleSubmit"
           >
             {{ isSubmitting ? 'Creating...' : 'Create' }}
           </button>

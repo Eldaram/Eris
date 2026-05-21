@@ -74,7 +74,7 @@ describe('RoomSideBar.vue', () => {
             { id: 'room-2', name: 'announcements', isDm: false }
         ])
 
-        const wrapper = mount(RoomSideBar, {
+        mount(RoomSideBar, {
             props: {
                 selectedServer: { id: 'server-1', name: 'Sky Lounge', ownerId: 'owner-1' }
             },

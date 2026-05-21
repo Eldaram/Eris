@@ -1,7 +1,6 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { chatService, chatState } from '../chat'
 import { socketService } from '../socket'
-import { authService } from '../auth'
 
 // Mock socketService
 vi.mock('../socket', () => {

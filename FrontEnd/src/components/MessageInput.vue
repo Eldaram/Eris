@@ -23,22 +23,31 @@ const handleSend = async () => {
 
 <template>
   <div class="message-input-container">
-    <form @submit.prevent="handleSend" class="input-wrapper">
+    <form
+      class="input-wrapper"
+      @submit.prevent="handleSend"
+    >
       <input
-        type="text"
         v-model="messageText"
+        type="text"
         :placeholder="`Message #${chatState.currentRoomId || 'general'}`"
         :disabled="isSending"
         class="message-input"
-      />
+      >
       <button 
         type="submit" 
         :disabled="!messageText.trim() || isSending"
         class="send-button"
         aria-label="Send message"
       >
-        <svg viewBox="0 0 24 24" class="send-icon">
-          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
+        <svg
+          viewBox="0 0 24 24"
+          class="send-icon"
+        >
+          <path
+            d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"
+            fill="currentColor"
+          />
         </svg>
       </button>
     </form>

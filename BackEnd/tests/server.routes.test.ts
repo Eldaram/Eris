@@ -91,7 +91,7 @@ describe('Server Routes', () => {
         await prisma.userPerServer.create({ data: { serverId: server.id, userId: testUserId } });
 
         const roomA = await prisma.room.create({ data: { name: 'alpha', serverId: server.id, isDm: false } });
-        const roomB = await prisma.room.create({ data: { name: 'beta', serverId: server.id, isDm: false } });
+        await prisma.room.create({ data: { name: 'beta', serverId: server.id, isDm: false } });
 
         // member request
         const resMember = await request(app)

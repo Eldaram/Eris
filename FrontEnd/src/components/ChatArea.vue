@@ -79,24 +79,41 @@ const formatTime = (dateString) => {
         {{ chatState.currentRoomId || 'general' }}
       </h2>
       <div class="header-actions">
-        <span v-if="chatState.isLoading" class="loading-indicator">Syncing messages...</span>
+        <span
+          v-if="chatState.isLoading"
+          class="loading-indicator"
+        >Syncing messages...</span>
       </div>
     </div>
     
-    <div class="messages-container" ref="messagesContainer">
-      <div v-if="chatState.messages.length === 0 && !chatState.isLoading" class="empty-state">
-        <div class="welcome-banner">#</div>
+    <div
+      ref="messagesContainer"
+      class="messages-container"
+    >
+      <div
+        v-if="chatState.messages.length === 0 && !chatState.isLoading"
+        class="empty-state"
+      >
+        <div class="welcome-banner">
+          #
+        </div>
         <h3>Welcome to #{{ chatState.currentRoomId || 'general' }}!</h3>
         <p>This is the beginning of the chat channel history. Be the first to start the conversation!</p>
       </div>
       
-      <div v-else class="message-list">
+      <div
+        v-else
+        class="message-list"
+      >
         <div 
           v-for="message in chatState.messages" 
           :key="message.id" 
           :class="['message', { 'own-message': message.author_id === authState.user?.id }]"
         >
-          <div class="message-avatar" :style="getAvatarStyle(message.author_username)">
+          <div
+            class="message-avatar"
+            :style="getAvatarStyle(message.author_username)"
+          >
             {{ getInitials(message.author_username) }}
           </div>
           <div class="message-content">

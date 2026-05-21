@@ -7,8 +7,29 @@ on:
       - dev
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Common Dependencies & Setup
+        run: |
+          npm install
+          npm run install:backend
+          npm run setup:frontend
+
+      - name: Run Lint
+        run: npm run lint
+
   test-frontend:
     runs-on: ubuntu-latest
+    needs: lint
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -28,6 +49,7 @@ jobs:
 
   test-backend:
     runs-on: ubuntu-latest
+    needs: lint
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
