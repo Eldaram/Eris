@@ -1,6 +1,8 @@
 import { mount } from '@vue/test-utils'
 import RoomSideBar from '../RoomSideBar.vue'
 import { serverService } from '../../services/server'
+import { authState } from '../../services/auth'
+import { socketService } from '../../services/socket'
 
 vi.mock('../../services/server', () => ({
     serverService: {
@@ -10,9 +12,27 @@ vi.mock('../../services/server', () => ({
     }
 }))
 
+const notificationHandlers = new Map()
+
+vi.mock('../../services/socket', () => ({
+    socketService: {
+        joinRoom: vi.fn(),
+        leaveRoom: vi.fn(),
+        on: vi.fn((type, callback) => {
+            notificationHandlers.set(type, callback)
+        }),
+        off: vi.fn((type) => {
+            notificationHandlers.delete(type)
+        })
+    }
+}))
+
 describe('RoomSideBar.vue', () => {
     beforeEach(() => {
         vi.clearAllMocks()
+        notificationHandlers.clear()
+        authState.user = { id: 'owner-1', username: 'Owner' }
+        authState.token = 'test-token'
     })
 
     it('renders correctly', () => {
@@ -43,15 +63,12 @@ describe('RoomSideBar.vue', () => {
             }
         })
 
-        await new Promise(resolve => setTimeout(resolve, 0))
-
-        expect(wrapper.find('.room-btn').exists()).toBe(true)
+        await vi.waitFor(() => expect(wrapper.find('.room-btn').exists()).toBe(true))
     })
 
-    it('opens the room modal and refreshes channels after creation', async () => {
+    it('joins the selected server room and refreshes channels on room-created notifications', async () => {
         serverService.isServerOwner.mockResolvedValueOnce({ isOwner: true })
         serverService.getChannels.mockResolvedValueOnce([{ id: 'room-1', name: 'general', isDm: false }])
-        serverService.createRoom.mockResolvedValueOnce({ success: true, room: { id: 'room-2', name: 'announcements', serverId: 'server-1' } })
         serverService.getChannels.mockResolvedValueOnce([
             { id: 'room-1', name: 'general', isDm: false },
             { id: 'room-2', name: 'announcements', isDm: false }
@@ -68,15 +85,11 @@ describe('RoomSideBar.vue', () => {
 
         await new Promise(resolve => setTimeout(resolve, 0))
 
-        await wrapper.find('.room-btn').trigger('click')
-        expect(wrapper.find('input#room-name').exists()).toBe(true)
+        expect(socketService.joinRoom).toHaveBeenCalledWith('server:server-1')
+        expect(notificationHandlers.has('room:created')).toBe(true)
 
-        await wrapper.find('input#room-name').setValue('announcements')
-        await wrapper.find('form').trigger('submit')
+        await notificationHandlers.get('room:created')({ serverId: 'server-1', roomId: 'room-2', roomName: 'announcements' })
 
-        await vi.waitFor(() => expect(serverService.createRoom).toHaveBeenCalled())
-
-        expect(serverService.createRoom).toHaveBeenCalledWith('server-1', 'announcements')
         expect(serverService.getChannels).toHaveBeenCalledTimes(2)
     })
 })

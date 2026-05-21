@@ -1,7 +1,8 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { authState } from '../services/auth'
 import { serverService } from '../services/server'
+import { socketService } from '../services/socket'
 import RoomCreationModal from './RoomCreationModal.vue'
 
 const props = defineProps({
@@ -16,22 +17,66 @@ const loading = ref(false)
 const error = ref(null)
 const showRoomModal = ref(false)
 const canCreateRoom = ref(false)
-const ownershipLoading = ref(false)
+const activeServerRoom = ref(null)
 
 const hasSelectedServer = computed(() => Boolean(props.selectedServer?.id))
 
-watch(() => props.selectedServer, async (newServer) => {
+const leaveActiveServerRoom = () => {
+  if (activeServerRoom.value) {
+    socketService.leaveRoom(activeServerRoom.value)
+    activeServerRoom.value = null
+  }
+}
+
+const joinActiveServerRoom = (serverId) => {
+  const nextRoom = `server:${serverId}`
+
+  if (activeServerRoom.value === nextRoom) {
+    return
+  }
+
+  leaveActiveServerRoom()
+  socketService.joinRoom(nextRoom)
+  activeServerRoom.value = nextRoom
+}
+
+const loadChannels = async (serverId) => {
+  channels.value = await serverService.getChannels(serverId)
+}
+
+const loadOwnership = async (serverId) => {
+  const ownership = await serverService.isServerOwner(serverId)
+  canCreateRoom.value = Boolean(ownership.isOwner)
+}
+
+const handleRoomCreatedNotification = async (notification) => {
+  if (!notification?.serverId || notification.serverId !== props.selectedServer?.id) {
+    return
+  }
+
+  try {
+    await loadChannels(notification.serverId)
+  } catch (err) {
+    error.value = err.message || 'Failed to load channels'
+  }
+}
+
+watch(() => props.selectedServer?.id, async (serverId, previousServerId) => {
   channels.value = []
   error.value = null
   canCreateRoom.value = false
 
-  if (!newServer || !newServer.id) return
+  if (previousServerId && previousServerId !== serverId) {
+    leaveActiveServerRoom()
+  }
+
+  if (!serverId) return
 
   loading.value = true
-  ownershipLoading.value = true
+  joinActiveServerRoom(serverId)
 
   try {
-    channels.value = await serverService.getChannels(newServer.id)
+    await loadChannels(serverId)
   } catch (err) {
     error.value = err.message || 'Failed to load channels'
   } finally {
@@ -39,18 +84,22 @@ watch(() => props.selectedServer, async (newServer) => {
   }
 
   try {
-    if (newServer.ownerId && authState.user?.id) {
-      canCreateRoom.value = newServer.ownerId === authState.user.id
+    if (authState.user?.id) {
+      await loadOwnership(serverId)
     }
-
-    const ownership = await serverService.isServerOwner(newServer.id)
-    canCreateRoom.value = Boolean(ownership.isOwner)
   } catch (err) {
     canCreateRoom.value = false
-  } finally {
-    ownershipLoading.value = false
   }
 }, { immediate: true })
+
+onMounted(() => {
+  socketService.on('room:created', handleRoomCreatedNotification)
+})
+
+onBeforeUnmount(() => {
+  socketService.off('room:created', handleRoomCreatedNotification)
+  leaveActiveServerRoom()
+})
 
 const reloadChannels = async () => {
   if (!props.selectedServer?.id) return
@@ -69,7 +118,6 @@ const handleOpenRoomModal = () => {
 
 const handleRoomCreated = async () => {
   showRoomModal.value = false
-  await reloadChannels()
 }
 
 const handleRoomError = (errorMsg) => {
