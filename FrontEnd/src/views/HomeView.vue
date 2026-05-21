@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { chatService } from '../services/chat'
+import { chatService, chatState } from '../services/chat'
 import { socketService } from '../services/socket'
 import { authState } from '../services/auth'
 import { serverService } from '../services/server'
@@ -65,6 +65,10 @@ const clearInviteState = () => {
 const openServerById = async (serverId) => {
   await serverSidebarRef.value?.reloadServers?.()
   serverSidebarRef.value?.selectServerById?.(serverId)
+}
+
+const handleRoomSelected = async (room) => {
+  await chatService.setRoom(room)
 }
 
 const handleInviteError = (error) => {
@@ -143,6 +147,13 @@ const handleInviteLinkClose = () => {
 }
 
 watch(
+  () => selectedServer.value?.id,
+  () => {
+    chatService.clearRoom()
+  }
+)
+
+watch(
   () => route.params.code,
   (code) => {
     if (typeof code === 'string' && code.trim()) {
@@ -177,6 +188,8 @@ onUnmounted(() => {
         <div class="rooms-column">
           <RoomSideBar
             :selected-server="selectedServer"
+            :selected-room-id="chatState.currentRoomId"
+            @room-selected="handleRoomSelected"
             @create-invite="handleCreateInvite"
           />
         </div>
@@ -189,7 +202,7 @@ onUnmounted(() => {
     
     <div class="chat-column">
       <ChatArea />
-      <MessageInput />
+      <MessageInput v-if="chatState.currentRoomId" />
     </div>
     
     <ConnectedUsersSideBar />
@@ -262,5 +275,7 @@ onUnmounted(() => {
   flex: 1;
   background-color: var(--card-bg, #361134);
   min-width: 0; /* Important for flex children to allow shrinking below min-content */
+  min-height: 0;
+  overflow: hidden;
 }
 </style>

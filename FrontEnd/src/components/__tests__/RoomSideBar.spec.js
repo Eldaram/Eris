@@ -38,7 +38,7 @@ describe('RoomSideBar.vue', () => {
     it('renders correctly', () => {
         const wrapper = mount(RoomSideBar)
         expect(wrapper.text()).toContain('Rooms')
-        expect(wrapper.text()).toContain('general')
+        expect(wrapper.text()).toContain('Choose a server to see its rooms')
     })
 
     it('shows invite action when a server is selected and emits create-invite', async () => {
@@ -91,5 +91,27 @@ describe('RoomSideBar.vue', () => {
         await notificationHandlers.get('room:created')({ serverId: 'server-1', roomId: 'room-2', roomName: 'announcements' })
 
         expect(serverService.getChannels).toHaveBeenCalledTimes(2)
+    })
+
+    it('emits room-selected when a room is clicked', async () => {
+        serverService.isServerOwner.mockResolvedValueOnce({ isOwner: false })
+        serverService.getChannels.mockResolvedValueOnce([
+            { id: 'room-1', name: 'lobby', isDm: false },
+        ])
+
+        const wrapper = mount(RoomSideBar, {
+            props: {
+                selectedServer: { id: 'server-1', name: 'Sky Lounge' },
+                selectedRoomId: 'room-1'
+            }
+        })
+
+        await new Promise((resolve) => setTimeout(resolve, 0))
+
+        const room = wrapper.find('.room-item:not(.empty-state)')
+        await room.trigger('click')
+
+        expect(wrapper.emitted('room-selected')).toBeTruthy()
+        expect(wrapper.emitted('room-selected')[0][0]).toMatchObject({ id: 'room-1', name: 'lobby' })
     })
 })

@@ -1,28 +1,103 @@
 <script setup>
-import { ref, onMounted, watch, nextTick } from 'vue'
-import { chatState } from '../services/chat'
+import { ref, watch, nextTick } from 'vue'
+import { chatState, chatService } from '../services/chat'
 import { authState } from '../services/auth'
 
 const messagesContainer = ref(null)
+const isNearBottom = ref(true)
+const suppressTopLoadUntil = ref(0)
+
+const updateScrollPositionState = () => {
+  if (!messagesContainer.value) {
+    isNearBottom.value = true
+    return
+  }
+
+  const { scrollTop, scrollHeight, clientHeight } = messagesContainer.value
+  isNearBottom.value = scrollTop + clientHeight >= scrollHeight - 32
+}
+
+const armTopLoadGuard = () => {
+  suppressTopLoadUntil.value = Date.now() + 100
+}
 
 const scrollToBottom = async (smooth = true) => {
   await nextTick()
+
   if (messagesContainer.value && typeof messagesContainer.value.scrollTo === 'function') {
     messagesContainer.value.scrollTo({
       top: messagesContainer.value.scrollHeight,
       behavior: smooth ? 'smooth' : 'auto'
     })
   }
+
+  updateScrollPositionState()
 }
 
-// Watch messages array length and auto-scroll to bottom on new additions
-watch(() => chatState.messages.length, () => {
-  scrollToBottom(true)
+const preserveScrollAfterPrepend = async (previousScrollHeight, previousScrollTop) => {
+  await nextTick()
+
+  if (!messagesContainer.value) {
+    return
+  }
+
+  const nextScrollHeight = messagesContainer.value.scrollHeight
+  messagesContainer.value.scrollTop = nextScrollHeight - previousScrollHeight + previousScrollTop
+  updateScrollPositionState()
+}
+
+const handleScroll = async () => {
+  updateScrollPositionState()
+
+  if (!chatState.currentRoomId || chatState.isLoadingMore || !chatState.hasMoreMessages) {
+    return
+  }
+
+  if (Date.now() < suppressTopLoadUntil.value) {
+    return
+  }
+
+  if (!messagesContainer.value || messagesContainer.value.scrollTop > 32) {
+    return
+  }
+
+  const previousScrollHeight = messagesContainer.value.scrollHeight
+  const previousScrollTop = messagesContainer.value.scrollTop
+
+  await chatService.loadOlderMessages()
+  armTopLoadGuard()
+  await preserveScrollAfterPrepend(previousScrollHeight, previousScrollTop)
+}
+
+watch(() => chatState.shouldScrollToBottom, async (shouldScroll) => {
+  if (!shouldScroll) {
+    return
+  }
+
+  chatState.shouldScrollToBottom = false
+  armTopLoadGuard()
+  await scrollToBottom(false)
 })
 
-// Scroll instantly to bottom on initial mount
-onMounted(() => {
-  scrollToBottom(false)
+watch(() => chatState.messages.length, async (newLength, oldLength) => {
+  if (newLength <= oldLength) {
+    return
+  }
+
+  await nextTick()
+
+  if (chatState.isLoadingMore) {
+    return
+  }
+
+  if (chatState.shouldScrollToBottom) {
+    return
+  }
+
+  if (isNearBottom.value) {
+    armTopLoadGuard()
+    await scrollToBottom(true)
+  }
 })
 
 // Generate harmonious colors for avatars dynamically based on username hashing
@@ -73,61 +148,80 @@ const formatTime = (dateString) => {
 
 <template>
   <div class="chat-area">
-    <div class="chat-header">
-      <h2>
-        <span class="hashtag">#</span> 
-        {{ chatState.currentRoomId || 'general' }}
-      </h2>
-      <div class="header-actions">
-        <span
-          v-if="chatState.isLoading"
-          class="loading-indicator"
-        >Syncing messages...</span>
-      </div>
-    </div>
-    
-    <div
-      ref="messagesContainer"
-      class="messages-container"
-    >
-      <div
-        v-if="chatState.messages.length === 0 && !chatState.isLoading"
-        class="empty-state"
-      >
-        <div class="welcome-banner">
-          #
+    <template v-if="!chatState.currentRoomId">
+      <div class="empty-room-state">
+        <div class="empty-room-card">
+          <div class="welcome-banner">
+            #
+          </div>
+          <h3>Choose a room</h3>
+          <p>Select a room from the sidebar to load the conversation.</p>
         </div>
-        <h3>Welcome to #{{ chatState.currentRoomId || 'general' }}!</h3>
-        <p>This is the beginning of the chat channel history. Be the first to start the conversation!</p>
       </div>
-      
+    </template>
+
+    <template v-else>
+      <div class="chat-header">
+        <h2>
+          <span class="hashtag">#</span>
+          {{ chatState.currentRoom?.name || chatState.currentRoomId }}
+        </h2>
+        <div class="header-actions">
+          <span
+            v-if="chatState.isLoading"
+            class="loading-indicator"
+          >Loading messages...</span>
+          <span
+            v-else-if="chatState.isLoadingMore"
+            class="loading-indicator"
+          >Loading earlier messages...</span>
+        </div>
+      </div>
+
       <div
-        v-else
-        class="message-list"
+        ref="messagesContainer"
+        class="messages-container"
+        @scroll.passive="handleScroll"
       >
-        <div 
-          v-for="message in chatState.messages" 
-          :key="message.id" 
-          :class="['message', { 'own-message': message.author_id === authState.user?.id }]"
+        <div
+          v-if="chatState.messages.length === 0 && !chatState.isLoading"
+          class="empty-state"
+        >
+          <div class="welcome-banner">
+            #
+          </div>
+          <h3>No messages yet</h3>
+          <p>Be the first to send a message in this room.</p>
+        </div>
+
+        <div
+          v-else
+          class="message-list"
         >
           <div
-            class="message-avatar"
-            :style="getAvatarStyle(message.author_username)"
+            v-for="message in chatState.messages"
+            :key="message.id"
+            :class="['message', { 'own-message': message.author_id === authState.user?.id }]"
           >
-            {{ getInitials(message.author_username) }}
-          </div>
-          <div class="message-content">
-            <div class="message-meta">
-              <span class="sender">{{ message.author_username }}</span>
-              <span class="timestamp">{{ formatTime(message.createdAt) }}</span>
+            <div
+              class="message-avatar"
+              :style="getAvatarStyle(message.author_username)"
+            >
+              {{ getInitials(message.author_username) }}
             </div>
-            <div class="message-text">
-              {{ message.content }}
+            <div class="message-content">
+              <div class="message-meta">
+                <span class="sender">{{ message.author_username }}</span>
+                <span class="timestamp">{{ formatTime(message.createdAt) }}</span>
+              </div>
+              <div class="message-text">
+                {{ message.content }}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
@@ -137,7 +231,8 @@ const formatTime = (dateString) => {
   display: flex;
   flex-direction: column;
   background-color: var(--card-bg, #361134);
-  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .chat-header {
@@ -181,7 +276,28 @@ const formatTime = (dateString) => {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
+  min-height: 0;
   scroll-behavior: smooth;
+}
+
+.empty-room-state {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.empty-room-card {
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  padding: 2.5rem;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(36, 11, 35, 0.85), rgba(36, 11, 35, 0.55));
+  border: 1px solid rgba(176, 34, 140, 0.18);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.2);
 }
 
 /* Custom premium scrollbars */
@@ -245,7 +361,6 @@ const formatTime = (dateString) => {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  justify-content: flex-end;
 }
 
 .message {

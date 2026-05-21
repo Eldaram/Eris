@@ -30,13 +30,13 @@ const handleSend = async () => {
       <input
         v-model="messageText"
         type="text"
-        :placeholder="`Message #${chatState.currentRoomId || 'general'}`"
-        :disabled="isSending"
+        :placeholder="chatState.currentRoomId ? `Message #${chatState.currentRoom?.name || chatState.currentRoomId}` : 'Choose a room to start chatting'"
+        :disabled="isSending || !chatState.currentRoomId"
         class="message-input"
       >
       <button 
         type="submit" 
-        :disabled="!messageText.trim() || isSending"
+        :disabled="!chatState.currentRoomId || !messageText.trim() || isSending"
         class="send-button"
         aria-label="Send message"
       >
@@ -59,6 +59,10 @@ const handleSend = async () => {
   padding: 0 1.5rem 1.5rem 1.5rem;
   background-color: var(--card-bg, #361134);
   flex-shrink: 0;
+  border-top: 1px solid var(--input-border, #4a1447);
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
 }
 
 .input-wrapper {
