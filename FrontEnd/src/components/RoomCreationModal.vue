@@ -52,14 +52,28 @@ const handleSubmit = async () => {
 
 <template>
   <Teleport to="body">
-    <div v-if="show" class="modal-overlay" @click.self="handleClose">
+    <div
+      v-if="show"
+      class="modal-overlay"
+      @click.self="handleClose"
+    >
       <div class="modal-content">
         <header class="modal-header">
           <h2>Create a Room</h2>
-          <button class="close-btn" type="button" aria-label="Close room creation dialog" @click="handleClose">×</button>
+          <button
+            class="close-btn"
+            type="button"
+            aria-label="Close room creation dialog"
+            @click="handleClose"
+          >
+            ×
+          </button>
         </header>
 
-        <form class="modal-body" @submit.prevent="handleSubmit">
+        <form
+          class="modal-body"
+          @submit.prevent="handleSubmit"
+        >
           <p>
             Add a new room inside {{ serverName || 'this server' }}. Keep the name short and clear.
           </p>
@@ -80,10 +94,19 @@ const handleSubmit = async () => {
           </div>
 
           <footer class="modal-footer">
-            <button class="cancel-btn" type="button" @click="handleClose" :disabled="isSubmitting">
+            <button
+              class="cancel-btn"
+              type="button"
+              :disabled="isSubmitting"
+              @click="handleClose"
+            >
               Cancel
             </button>
-            <button class="create-btn" type="submit" :disabled="isSubmitting || !roomName.trim()">
+            <button
+              class="create-btn"
+              type="submit"
+              :disabled="isSubmitting || !roomName.trim()"
+            >
               {{ isSubmitting ? 'Creating...' : 'Create Room' }}
             </button>
           </footer>

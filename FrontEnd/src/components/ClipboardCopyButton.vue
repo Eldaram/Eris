@@ -32,7 +32,11 @@ const copyText = async () => {
 </script>
 
 <template>
-  <button class="clipboard-copy-button" type="button" @click="copyText">
+  <button
+    class="clipboard-copy-button"
+    type="button"
+    @click="copyText"
+  >
     <span class="icon">{{ isCopied ? '✓' : '⧉' }}</span>
     <span>{{ isCopied ? 'Copied' : label }}</span>
   </button>

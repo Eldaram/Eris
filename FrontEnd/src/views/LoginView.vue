@@ -58,8 +58,14 @@ const handleLogin = async () => {
 </script>
 
 <template>
-  <AuthCard title="Welcome to Eris" subtitle="Please log in to continue">
-    <form @submit.prevent="handleLogin" class="login-form">
+  <AuthCard
+    title="Welcome to Eris"
+    subtitle="Please log in to continue"
+  >
+    <form
+      class="login-form"
+      @submit.prevent="handleLogin"
+    >
       <AuthInput
         id="email"
         v-model="email"
@@ -80,10 +86,16 @@ const handleLogin = async () => {
         :disabled="isLoading"
       />
       
-      <AuthButton :text="isLoading ? 'Logging in...' : 'Login'" type="submit" :disabled="isLoading" />
+      <AuthButton
+        :text="isLoading ? 'Logging in...' : 'Login'"
+        type="submit"
+        :disabled="isLoading"
+      />
 
       <div class="register-link">
-        Don't have an account? <router-link to="/register">Create one</router-link>
+        Don't have an account? <router-link to="/register">
+          Create one
+        </router-link>
       </div>
     </form>
   </AuthCard>

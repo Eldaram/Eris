@@ -31,7 +31,7 @@ export class NotificationService {
                     initializeSocket(srv as any);
                     console.log('[NotificationService] Lazily initialized test Socket.IO server');
                 });
-            } catch (e) {
+            } catch {
                 // swallow — tests may still assert on uninitialized behavior
             }
         }

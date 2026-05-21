@@ -8,7 +8,7 @@ import RoomCreationModal from './RoomCreationModal.vue'
 const props = defineProps({
   selectedServer: {
     type: Object,
-    required: false,
+    default: null,
   }
 })
 
@@ -87,7 +87,7 @@ watch(() => props.selectedServer?.id, async (serverId, previousServerId) => {
     if (authState.user?.id) {
       await loadOwnership(serverId)
     }
-  } catch (err) {
+  } catch {
     canCreateRoom.value = false
   }
 }, { immediate: true })
@@ -100,16 +100,6 @@ onBeforeUnmount(() => {
   socketService.off('room:created', handleRoomCreatedNotification)
   leaveActiveServerRoom()
 })
-
-const reloadChannels = async () => {
-  if (!props.selectedServer?.id) return
-
-  try {
-    channels.value = await serverService.getChannels(props.selectedServer.id)
-  } catch (err) {
-    error.value = err.message || 'Failed to load channels'
-  }
-}
 
 const handleOpenRoomModal = () => {
   if (!canCreateRoom.value || !props.selectedServer?.id) return
@@ -132,7 +122,10 @@ const emit = defineEmits(['create-invite'])
     <div class="sidebar-header">
       <h2>
         <span>{{ props.selectedServer?.name || 'Rooms' }}</span>
-        <span class="actions" v-if="hasSelectedServer">
+        <span
+          v-if="hasSelectedServer"
+          class="actions"
+        >
           <button
             v-if="canCreateRoom"
             class="room-btn"
@@ -168,23 +161,40 @@ const emit = defineEmits(['create-invite'])
 
       <!-- When a server is selected, show channels fetched from API -->
       <template v-else>
-        <div v-if="loading" class="room-item">Loading...</div>
+        <div
+          v-if="loading"
+          class="room-item"
+        >
+          Loading...
+        </div>
         <div v-else>
-          <div v-if="channels.length === 0" class="room-item empty-state">
+          <div
+            v-if="channels.length === 0"
+            class="room-item empty-state"
+          >
             <span class="text">No rooms</span>
           </div>
-          <div v-for="ch in channels" :key="ch.id" class="room-item">
+          <div
+            v-for="ch in channels"
+            :key="ch.id"
+            class="room-item"
+          >
             <span class="hashtag">#</span> {{ ch.name }}
           </div>
         </div>
-        <div v-if="error" class="room-item">{{ error }}</div>
+        <div
+          v-if="error"
+          class="room-item"
+        >
+          {{ error }}
+        </div>
       </template>
     </div>
 
     <RoomCreationModal
       :show="showRoomModal"
-      :serverId="props.selectedServer?.id || ''"
-      :serverName="props.selectedServer?.name || ''"
+      :server-id="props.selectedServer?.id || ''"
+      :server-name="props.selectedServer?.name || ''"
       @close="showRoomModal = false"
       @created="handleRoomCreated"
       @error="handleRoomError"

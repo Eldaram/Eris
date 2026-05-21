@@ -1,5 +1,5 @@
 <script setup>
-const props = defineProps({
+defineProps({
   show: {
     type: Boolean,
     required: true
@@ -21,11 +21,21 @@ const handleClose = () => emit('close')
 
 <template>
   <Teleport to="body">
-    <div v-if="show" class="modal-overlay" @click.self="handleClose">
+    <div
+      v-if="show"
+      class="modal-overlay"
+      @click.self="handleClose"
+    >
       <div class="modal-content">
         <header class="modal-header">
           <h2>Join Server?</h2>
-          <button class="close-btn" @click="handleClose" aria-label="Close invitation popup">×</button>
+          <button
+            class="close-btn"
+            aria-label="Close invitation popup"
+            @click="handleClose"
+          >
+            ×
+          </button>
         </header>
 
         <main class="modal-body">
@@ -37,8 +47,18 @@ const handleClose = () => emit('close')
         </main>
 
         <footer class="modal-footer">
-          <button class="cancel-btn" @click="handleClose" :disabled="loading">Cancel</button>
-          <button class="confirm-btn" @click="$emit('confirm')" :disabled="loading">
+          <button
+            class="cancel-btn"
+            :disabled="loading"
+            @click="handleClose"
+          >
+            Cancel
+          </button>
+          <button
+            class="confirm-btn"
+            :disabled="loading"
+            @click="$emit('confirm')"
+          >
             {{ loading ? 'Joining...' : 'Accept' }}
           </button>
         </footer>

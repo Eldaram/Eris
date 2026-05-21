@@ -62,7 +62,7 @@ const handleRegister = async () => {
       path: '/login',
       query: { registered: 'true' }
     })
-  } catch (error) {
+  } catch {
     showNotification('Unable to connect to the server. Please try again later.', 'error')
   } finally {
     isLoading.value = false
@@ -71,8 +71,14 @@ const handleRegister = async () => {
 </script>
 
 <template>
-  <AuthCard title="Create an Account" subtitle="Join Eris today">
-    <form @submit.prevent="handleRegister" class="register-form">
+  <AuthCard
+    title="Create an Account"
+    subtitle="Join Eris today"
+  >
+    <form
+      class="register-form"
+      @submit.prevent="handleRegister"
+    >
       <AuthInput
         id="username"
         v-model="username"
@@ -112,10 +118,16 @@ const handleRegister = async () => {
         :disabled="isLoading"
       />
       
-      <AuthButton :text="isLoading ? 'Creating Account...' : 'Create Account'" type="submit" :disabled="isLoading" />
+      <AuthButton
+        :text="isLoading ? 'Creating Account...' : 'Create Account'"
+        type="submit"
+        :disabled="isLoading"
+      />
 
       <div class="login-link">
-        Already have an account? <router-link to="/login">Log in</router-link>
+        Already have an account? <router-link to="/login">
+          Log in
+        </router-link>
       </div>
     </form>
   </AuthCard>

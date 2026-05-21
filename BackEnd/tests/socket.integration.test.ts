@@ -2,7 +2,6 @@ import { Server as HTTPServer } from 'http';
 import { createServer } from 'http';
 import express from 'express';
 import { io as ioClient, Socket as ClientSocket } from 'socket.io-client';
-import request from 'supertest';
 import { initializeSocket, closeSocket, getSocketIO } from '../src/config/socket';
 import { ServerService } from '../src/services/server.service';
 import prisma from '../src/config/prisma';
