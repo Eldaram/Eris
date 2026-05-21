@@ -2,6 +2,17 @@ import { authService } from './auth';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+const jsonRequest = async (url, options = {}) => {
+    const response = await fetch(url, options);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || 'Request failed');
+    }
+
+    return data;
+};
+
 export const serverService = {
     /**
      * Create a new server
@@ -62,7 +73,7 @@ export const serverService = {
      */
     async getChannels(serverId) {
         try {
-            const response = await fetch(`${API_URL}/api/servers/${serverId}/channels`, {
+            const data = await jsonRequest(`${API_URL}/api/servers/${serverId}/channels`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -70,14 +81,54 @@ export const serverService = {
                 }
             });
 
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to fetch channels');
-            }
-
             return data.channels || [];
         } catch (error) {
             console.error('Get channels error:', error);
+            throw error;
+        }
+    },
+
+    async createInvite(serverId) {
+        try {
+            return await jsonRequest(`${API_URL}/api/servers/${serverId}/invites`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeader()
+                }
+            });
+        } catch (error) {
+            console.error('Create invite error:', error);
+            throw error;
+        }
+    },
+
+    async getInvitePreview(code) {
+        try {
+            return await jsonRequest(`${API_URL}/api/invites/${code}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeader()
+                }
+            });
+        } catch (error) {
+            console.error('Get invite preview error:', error);
+            throw error;
+        }
+    },
+
+    async redeemInvite(code) {
+        try {
+            return await jsonRequest(`${API_URL}/api/invites/${code}/redeem`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeader()
+                }
+            });
+        } catch (error) {
+            console.error('Redeem invite error:', error);
             throw error;
         }
     }

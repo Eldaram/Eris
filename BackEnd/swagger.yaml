@@ -13,6 +13,8 @@ tags:
     description: User authentication and management endpoints
   - name: Servers
     description: Server management endpoints
+  - name: Invites
+    description: Invitation link endpoints for joining servers
   - name: Messages
     description: Chat message management endpoints
 paths:
@@ -446,6 +448,159 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /api/servers/{serverId}/invites:
+    post:
+      tags:
+        - Invites
+      summary: Create an invite link for a server
+      description: Creates a 24-hour invitation link for a server if the authenticated user is a member of that server.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: serverId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the server to create an invite for
+      responses:
+        '201':
+          description: Invite successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  inviteUrl:
+                    type: string
+                    format: uri
+                    example: http://localhost:5173/invite/550e8400-e29b-41d4-a716-446655440000
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    example: '2026-05-22T12:00:00.000Z'
+                  code:
+                    type: string
+                    example: 550e8400-e29b-41d4-a716-446655440000
+        '401':
+          description: Unauthorized — missing or invalid authentication token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden — requester is not a member of the server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Server not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/invites/{code}:
+    get:
+      tags:
+        - Invites
+      summary: Preview the server linked to an invite
+      description: Returns the server name for the invite so the client can show a confirmation popup. The response also indicates whether the authenticated user is already a member of that server.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The invitation token
+      responses:
+        '200':
+          description: Invite preview retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  serverName:
+                    type: string
+                    example: My Awesome Server
+                  alreadyMember:
+                    type: boolean
+                    example: false
+        '401':
+          description: Unauthorized — missing or invalid authentication token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Invitation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '410':
+          description: Invitation has expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/invites/{code}/redeem:
+    post:
+      tags:
+        - Invites
+      summary: Join a server through an invite
+      description: Adds the authenticated user to the invited server if the invite is valid. If the user is already a member, the operation is a no-op.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The invitation token
+      responses:
+        '200':
+          description: Invite redeemed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  serverId:
+                    type: string
+                    format: uuid
+                    example: 123e4567-e89b-12d3-a456-426614174000
+                  joined:
+                    type: boolean
+                    example: true
+                  alreadyMember:
+                    type: boolean
+                    example: false
+        '401':
+          description: Unauthorized — missing or invalid authentication token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Invitation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '410':
+          description: Invitation has expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
 components:
   schemas:
     User:
@@ -485,6 +640,12 @@ components:
             - UNAUTHORIZED
             - INVALID_SERVER_NAME
             - SERVER_CREATION_FAILED
+                - ACCESS_DENIED
+                - SERVER_NOT_FOUND
+                - INVITE_CREATION_FAILED
+                - INVITE_NOT_FOUND
+                - INVITE_EXPIRED
+                - INVITE_REDEMPTION_FAILED
     Message:
       type: object
       properties:
