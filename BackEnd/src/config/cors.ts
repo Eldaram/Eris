@@ -11,7 +11,7 @@ export function normalizeOrigin(origin?: string): string | null {
 }
 
 function stripQuotes(value: string): string {
-    return value.trim().replace(/^['\"]|['\"]$/g, '');
+    return value.trim().replace(/^['"]|['"]$/g, '');
 }
 
 function parseOriginValues(rawValue?: string): string[] {
