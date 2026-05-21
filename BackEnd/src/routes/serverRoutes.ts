@@ -8,6 +8,8 @@ const router = Router();
 router.post('/', authMiddleware, ServerController.createServer);
 router.get('/', authMiddleware, ServerController.listServers);
 router.get('/:serverId/channels', authMiddleware, ServerController.getChannels);
+router.get('/:serverId/ownership', authMiddleware, ServerController.getOwnership);
+router.post('/:serverId/rooms', authMiddleware, ServerController.createRoom);
 router.post('/:serverId/invites', authMiddleware, ServerController.createInvite);
 
 export default router;

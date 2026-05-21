@@ -110,6 +110,76 @@ describe('Server Routes', () => {
         expect(resNon.status).toBe(403);
     });
 
+    test('GET /api/servers/:serverId/ownership returns whether the requester owns the server', async () => {
+        const ownedServer = await prisma.server.create({ data: { name: 'Owned Server', ownerId: testUserId } });
+        await prisma.userPerServer.create({ data: { serverId: ownedServer.id, userId: testUserId } });
+
+        const otherServer = await prisma.server.create({ data: { name: 'Other Owned Server', ownerId: otherUserId } });
+        await prisma.userPerServer.create({ data: { serverId: otherServer.id, userId: otherUserId } });
+
+        const ownerRes = await request(app)
+            .get(`/api/servers/${ownedServer.id}/ownership`)
+            .set('Authorization', 'Bearer token-test-user');
+
+        expect(ownerRes.status).toBe(200);
+        expect(ownerRes.body.isOwner).toBe(true);
+
+        const nonOwnerRes = await request(app)
+            .get(`/api/servers/${otherServer.id}/ownership`)
+            .set('Authorization', 'Bearer token-test-user');
+
+        expect(nonOwnerRes.status).toBe(200);
+        expect(nonOwnerRes.body.isOwner).toBe(false);
+    });
+
+    test('POST /api/servers/:serverId/rooms lets the owner create a room', async () => {
+        const server = await prisma.server.create({ data: { name: 'Room Server', ownerId: testUserId } });
+        await prisma.userPerServer.create({ data: { serverId: server.id, userId: testUserId } });
+
+        const res = await request(app)
+            .post(`/api/servers/${server.id}/rooms`)
+            .set('Authorization', 'Bearer token-test-user')
+            .send({ name: 'announcements' });
+
+        expect(res.status).toBe(201);
+        expect(res.body.success).toBe(true);
+        expect(res.body.room).toMatchObject({
+            name: 'announcements',
+            serverId: server.id,
+        });
+
+        const room = await prisma.room.findUnique({ where: { id: res.body.room.id } });
+        expect(room).toBeDefined();
+        expect(room?.serverId).toBe(server.id);
+    });
+
+    test('POST /api/servers/:serverId/rooms denies non-owners', async () => {
+        const server = await prisma.server.create({ data: { name: 'Room Deny Server', ownerId: testUserId } });
+        await prisma.userPerServer.create({ data: { serverId: server.id, userId: testUserId } });
+        await prisma.userPerServer.create({ data: { serverId: server.id, userId: otherUserId } });
+
+        const res = await request(app)
+            .post(`/api/servers/${server.id}/rooms`)
+            .set('Authorization', 'Bearer token-other-user')
+            .send({ name: 'private-room' });
+
+        expect(res.status).toBe(403);
+        expect(res.body.code).toBe('ACCESS_DENIED');
+    });
+
+    test('POST /api/servers/:serverId/rooms validates the room name length', async () => {
+        const server = await prisma.server.create({ data: { name: 'Room Validation Server', ownerId: testUserId } });
+        await prisma.userPerServer.create({ data: { serverId: server.id, userId: testUserId } });
+
+        const res = await request(app)
+            .post(`/api/servers/${server.id}/rooms`)
+            .set('Authorization', 'Bearer token-test-user')
+            .send({ name: 'x'.repeat(25) });
+
+        expect(res.status).toBe(400);
+        expect(res.body.code).toBe('INVALID_ROOM_NAME');
+    });
+
     test('POST /api/servers/:serverId/invites creates an invite link for any member', async () => {
         const server = await prisma.server.create({ data: { name: 'Invite Server', ownerId: testUserId } });
         await prisma.userPerServer.create({ data: { serverId: server.id, userId: testUserId } });

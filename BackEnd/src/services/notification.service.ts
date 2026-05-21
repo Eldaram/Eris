@@ -127,6 +127,23 @@ export class NotificationService {
     }
 
     /**
+     * Helper method to create a room created notification and emit it
+     */
+    static notifyRoomCreated(roomId: string, roomName: string, serverId: string): void {
+        const notification: Notification = {
+            type: 'room:created',
+            timestamp: Date.now(),
+            data: {
+                roomId,
+                roomName,
+                serverId,
+            },
+        };
+
+        this.emitToServer(serverId, notification);
+    }
+
+    /**
      * Helper method to create a server updated notification and emit it
      */
     static notifyServerUpdated(

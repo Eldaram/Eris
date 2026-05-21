@@ -4,13 +4,15 @@ import { NotificationService } from './notification.service';
 
 type ServerErrorCode =
     | 'INVALID_SERVER_NAME'
+    | 'INVALID_ROOM_NAME'
     | 'SERVER_CREATION_FAILED'
     | 'ACCESS_DENIED'
     | 'SERVER_NOT_FOUND'
     | 'INVITE_CREATION_FAILED'
     | 'INVITE_NOT_FOUND'
     | 'INVITE_EXPIRED'
-    | 'INVITE_REDEMPTION_FAILED';
+    | 'INVITE_REDEMPTION_FAILED'
+    | 'ROOM_CREATION_FAILED';
 
 export class ServerInputError extends Error {
     constructor(
@@ -151,6 +153,95 @@ export class ServerService {
         });
 
         return channels;
+    }
+
+    /**
+     * Returns whether the requester owns the server.
+     */
+    static async isServerOwner(input: { serverId: string; userId: string }): Promise<{ isOwner: boolean }> {
+        const server = await prisma.server.findUnique({
+            where: { id: input.serverId },
+            select: {
+                ownerId: true,
+            },
+        });
+
+        if (!server) {
+            throw new ServerInputError('SERVER_NOT_FOUND', 'Server not found.', 404);
+        }
+
+        return {
+            isOwner: server.ownerId === input.userId,
+        };
+    }
+
+    /**
+     * Creates a new room in a server.
+     * Only the server owner can create rooms.
+     */
+    static async createRoom(input: { serverId: string; userId: string; name: string }): Promise<{ id: string; name: string; serverId: string }> {
+        const name = input.name.trim();
+
+        if (!name) {
+            throw new ServerInputError('INVALID_ROOM_NAME', 'Room name is required.');
+        }
+
+        if (name.length > 24) {
+            throw new ServerInputError('INVALID_ROOM_NAME', 'Room name must be 24 characters or fewer.');
+        }
+
+        try {
+            const room = await prisma.$transaction(async (tx) => {
+                const server = await tx.server.findUnique({
+                    where: { id: input.serverId },
+                    select: {
+                        ownerId: true,
+                    },
+                });
+
+                if (!server) {
+                    throw new ServerInputError('SERVER_NOT_FOUND', 'Server not found.', 404);
+                }
+
+                if (server.ownerId !== input.userId) {
+                    throw new ServerInputError('ACCESS_DENIED', 'Only the server owner can create rooms.', 403);
+                }
+
+                return tx.room.create({
+                    data: {
+                        name,
+                        serverId: input.serverId,
+                        isDm: false,
+                    },
+                    select: {
+                        id: true,
+                        name: true,
+                        serverId: true,
+                    },
+                });
+            });
+
+            const createdRoom = {
+                id: room.id,
+                name: room.name ?? name,
+                serverId: room.serverId ?? input.serverId,
+            };
+
+            try {
+                NotificationService.notifyRoomCreated(createdRoom.id, createdRoom.name, createdRoom.serverId);
+            } catch (notifError) {
+                console.error('Failed to send room creation notification:', notifError);
+            }
+
+            return createdRoom;
+        } catch (error) {
+            if (error instanceof ServerInputError) {
+                throw error;
+            }
+
+            console.error('Unexpected error while creating a room:', error);
+            throw new ServerInputError('ROOM_CREATION_FAILED', 'Failed to create the room.', 500);
+        }
     }
 
     /**

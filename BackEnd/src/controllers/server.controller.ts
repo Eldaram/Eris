@@ -94,6 +94,76 @@ export class ServerController {
         }
     }
 
+    static async getOwnership(req: Request, res: Response) {
+        const user = req.user;
+
+        if (!user) {
+            return res.status(401).json({ error: 'Authentication required.', code: 'UNAUTHORIZED' });
+        }
+
+        const { serverId } = req.params;
+
+        if (!serverId) {
+            return res.status(400).json({ error: 'serverId is required.', code: 'INVALID_SERVER_ID' });
+        }
+
+        try {
+            const result = await ServerService.isServerOwner({
+                serverId,
+                userId: user.id,
+            });
+
+            return res.status(200).json(result);
+        } catch (error) {
+            if (error instanceof ServerInputError) {
+                return res.status(error.statusCode).json({ error: error.message, code: error.code });
+            }
+
+            console.error('Unexpected error while checking server ownership:', error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
+    static async createRoom(req: Request, res: Response) {
+        const user = req.user;
+
+        if (!user) {
+            return res.status(401).json({ error: 'Authentication required.', code: 'UNAUTHORIZED' });
+        }
+
+        const { serverId } = req.params;
+
+        if (!serverId) {
+            return res.status(400).json({ error: 'serverId is required.', code: 'INVALID_SERVER_ID' });
+        }
+
+        const { name } = req.body;
+
+        if (!name || typeof name !== 'string') {
+            return res.status(400).json({ error: 'Room name is required.', code: 'INVALID_ROOM_NAME' });
+        }
+
+        try {
+            const room = await ServerService.createRoom({
+                serverId,
+                userId: user.id,
+                name,
+            });
+
+            return res.status(201).json({
+                success: true,
+                room,
+            });
+        } catch (error) {
+            if (error instanceof ServerInputError) {
+                return res.status(error.statusCode).json({ error: error.message, code: error.code });
+            }
+
+            console.error('Unexpected error while creating a room:', error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+
     static async createInvite(req: Request, res: Response) {
         const user = req.user;
 
