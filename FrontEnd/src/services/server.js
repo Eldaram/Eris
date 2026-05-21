@@ -88,6 +88,37 @@ export const serverService = {
         }
     },
 
+    async isServerOwner(serverId) {
+        try {
+            return await jsonRequest(`${API_URL}/api/servers/${serverId}/ownership`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeader()
+                }
+            });
+        } catch (error) {
+            console.error('Check server ownership error:', error);
+            throw error;
+        }
+    },
+
+    async createRoom(serverId, name) {
+        try {
+            return await jsonRequest(`${API_URL}/api/servers/${serverId}/rooms`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authService.getAuthHeader()
+                },
+                body: JSON.stringify({ name })
+            });
+        } catch (error) {
+            console.error('Create room error:', error);
+            throw error;
+        }
+    },
+
     async createInvite(serverId) {
         try {
             return await jsonRequest(`${API_URL}/api/servers/${serverId}/invites`, {

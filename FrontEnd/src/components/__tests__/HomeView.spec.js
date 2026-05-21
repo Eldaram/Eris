@@ -24,7 +24,12 @@ vi.mock('../../services/chat', () => ({
 
 vi.mock('../../services/socket', () => ({
     socketService: {
-        disconnect: vi.fn()
+        connect: vi.fn(),
+        disconnect: vi.fn(),
+        joinRoom: vi.fn(),
+        leaveRoom: vi.fn(),
+        on: vi.fn(),
+        off: vi.fn()
     }
 }))
 

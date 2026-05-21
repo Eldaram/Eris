@@ -13,6 +13,8 @@ tags:
     description: User authentication and management endpoints
   - name: Servers
     description: Server management endpoints
+  - name: Rooms
+    description: Room management endpoints
   - name: Invites
     description: Invitation link endpoints for joining servers
   - name: Messages
@@ -448,6 +450,145 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /api/servers/{serverId}/ownership:
+    get:
+      tags:
+        - Servers
+      summary: Check whether the authenticated user owns a server
+      description: Returns whether the authenticated user is the owner of the specified server.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: serverId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the server to check ownership for
+      responses:
+        '200':
+          description: Ownership status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isOwner:
+                    type: boolean
+                    example: true
+        '401':
+          description: Unauthorized — missing or invalid authentication token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Server not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/servers/{serverId}/rooms:
+    post:
+      tags:
+        - Rooms
+      summary: Create a room in a server
+      description: Creates a new room inside the specified server. Only the server owner can create rooms.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: serverId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the server to create the room in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: Room name (1-24 characters)
+                  minLength: 1
+                  maxLength: 24
+                  example: announcements
+      responses:
+        '201':
+          description: Room successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  room:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: 123e4567-e89b-12d3-a456-426614174000
+                      name:
+                        type: string
+                        example: announcements
+                      serverId:
+                        type: string
+                        format: uuid
+                        example: 123e4567-e89b-12d3-a456-426614174000
+        '400':
+          description: Validation error — room name is missing or invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                missingName:
+                  value:
+                    error: Room name is required.
+                    code: INVALID_ROOM_NAME
+                nameTooLong:
+                  value:
+                    error: Room name must be 24 characters or fewer.
+                    code: INVALID_ROOM_NAME
+        '401':
+          description: Unauthorized — missing or invalid authentication token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden — requester is not the server owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                accessDenied:
+                  value:
+                    error: Only the server owner can create rooms.
+                    code: ACCESS_DENIED
+        '404':
+          description: Server not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /api/servers/{serverId}/invites:
     post:
       tags:
@@ -640,12 +781,14 @@ components:
             - UNAUTHORIZED
             - INVALID_SERVER_NAME
             - SERVER_CREATION_FAILED
-                - ACCESS_DENIED
-                - SERVER_NOT_FOUND
-                - INVITE_CREATION_FAILED
-                - INVITE_NOT_FOUND
-                - INVITE_EXPIRED
-                - INVITE_REDEMPTION_FAILED
+            - ACCESS_DENIED
+            - SERVER_NOT_FOUND
+            - INVITE_CREATION_FAILED
+            - INVITE_NOT_FOUND
+            - INVITE_EXPIRED
+            - INVITE_REDEMPTION_FAILED
+            - INVALID_ROOM_NAME
+            - ROOM_CREATION_FAILED
     Message:
       type: object
       properties:

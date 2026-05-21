@@ -1,6 +1,9 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { authState } from '../services/auth'
 import { serverService } from '../services/server'
+import { socketService } from '../services/socket'
+import RoomCreationModal from './RoomCreationModal.vue'
 
 const props = defineProps({
   selectedServer: {
@@ -12,20 +15,114 @@ const props = defineProps({
 const channels = ref([])
 const loading = ref(false)
 const error = ref(null)
+const showRoomModal = ref(false)
+const canCreateRoom = ref(false)
+const activeServerRoom = ref(null)
 
-watch(() => props.selectedServer, async (newServer) => {
+const hasSelectedServer = computed(() => Boolean(props.selectedServer?.id))
+
+const leaveActiveServerRoom = () => {
+  if (activeServerRoom.value) {
+    socketService.leaveRoom(activeServerRoom.value)
+    activeServerRoom.value = null
+  }
+}
+
+const joinActiveServerRoom = (serverId) => {
+  const nextRoom = `server:${serverId}`
+
+  if (activeServerRoom.value === nextRoom) {
+    return
+  }
+
+  leaveActiveServerRoom()
+  socketService.joinRoom(nextRoom)
+  activeServerRoom.value = nextRoom
+}
+
+const loadChannels = async (serverId) => {
+  channels.value = await serverService.getChannels(serverId)
+}
+
+const loadOwnership = async (serverId) => {
+  const ownership = await serverService.isServerOwner(serverId)
+  canCreateRoom.value = Boolean(ownership.isOwner)
+}
+
+const handleRoomCreatedNotification = async (notification) => {
+  if (!notification?.serverId || notification.serverId !== props.selectedServer?.id) {
+    return
+  }
+
+  try {
+    await loadChannels(notification.serverId)
+  } catch (err) {
+    error.value = err.message || 'Failed to load channels'
+  }
+}
+
+watch(() => props.selectedServer?.id, async (serverId, previousServerId) => {
   channels.value = []
   error.value = null
-  if (!newServer || !newServer.id) return
+  canCreateRoom.value = false
+
+  if (previousServerId && previousServerId !== serverId) {
+    leaveActiveServerRoom()
+  }
+
+  if (!serverId) return
+
   loading.value = true
+  joinActiveServerRoom(serverId)
+
   try {
-    channels.value = await serverService.getChannels(newServer.id)
+    await loadChannels(serverId)
   } catch (err) {
     error.value = err.message || 'Failed to load channels'
   } finally {
     loading.value = false
   }
+
+  try {
+    if (authState.user?.id) {
+      await loadOwnership(serverId)
+    }
+  } catch (err) {
+    canCreateRoom.value = false
+  }
+}, { immediate: true })
+
+onMounted(() => {
+  socketService.on('room:created', handleRoomCreatedNotification)
 })
+
+onBeforeUnmount(() => {
+  socketService.off('room:created', handleRoomCreatedNotification)
+  leaveActiveServerRoom()
+})
+
+const reloadChannels = async () => {
+  if (!props.selectedServer?.id) return
+
+  try {
+    channels.value = await serverService.getChannels(props.selectedServer.id)
+  } catch (err) {
+    error.value = err.message || 'Failed to load channels'
+  }
+}
+
+const handleOpenRoomModal = () => {
+  if (!canCreateRoom.value || !props.selectedServer?.id) return
+  showRoomModal.value = true
+}
+
+const handleRoomCreated = async () => {
+  showRoomModal.value = false
+}
+
+const handleRoomError = (errorMsg) => {
+  error.value = errorMsg || 'Failed to create room'
+}
 
 const emit = defineEmits(['create-invite'])
 </script>
@@ -35,16 +132,27 @@ const emit = defineEmits(['create-invite'])
     <div class="sidebar-header">
       <h2>
         <span>{{ props.selectedServer?.name || 'Rooms' }}</span>
-        <button
-          v-if="props.selectedServer"
-          class="invite-btn"
-          type="button"
-          aria-label="Create server invite"
-          title="Create invite"
-          @click="emit('create-invite')"
-        >
-          ⤴
-        </button>
+        <span class="actions" v-if="hasSelectedServer">
+          <button
+            v-if="canCreateRoom"
+            class="room-btn"
+            type="button"
+            aria-label="Create room"
+            title="Create room"
+            @click="handleOpenRoomModal"
+          >
+            +
+          </button>
+          <button
+            class="invite-btn"
+            type="button"
+            aria-label="Create server invite"
+            title="Create invite"
+            @click="emit('create-invite')"
+          >
+            ⤴
+          </button>
+        </span>
       </h2>
     </div>
     <div class="room-list">
@@ -72,6 +180,15 @@ const emit = defineEmits(['create-invite'])
         <div v-if="error" class="room-item">{{ error }}</div>
       </template>
     </div>
+
+    <RoomCreationModal
+      :show="showRoomModal"
+      :serverId="props.selectedServer?.id || ''"
+      :serverName="props.selectedServer?.name || ''"
+      @close="showRoomModal = false"
+      @created="handleRoomCreated"
+      @error="handleRoomError"
+    />
   </div>
 </template>
 
@@ -100,6 +217,12 @@ const emit = defineEmits(['create-invite'])
   gap: 0.75rem;
 }
 
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .invite-btn {
   border: 1px solid var(--input-border, #4a1447);
   background: var(--input-bg, #240b23);
@@ -116,6 +239,26 @@ const emit = defineEmits(['create-invite'])
 }
 
 .invite-btn:hover {
+  border-color: var(--primary, #B0228C);
+  transform: translateY(-1px);
+}
+
+.room-btn {
+  border: 1px solid var(--input-border, #4a1447);
+  background: var(--input-bg, #240b23);
+  color: var(--text-main, #fff);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.room-btn:hover {
   border-color: var(--primary, #B0228C);
   transform: translateY(-1px);
 }
