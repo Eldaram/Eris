@@ -69,9 +69,15 @@ onMounted(() => {
         <span v-else>✕</span>
       </div>
       <div class="notification-content">
-        <p class="notification-message">{{ message }}</p>
+        <p class="notification-message">
+          {{ message }}
+        </p>
       </div>
-      <button class="notification-close" @click="$emit('close')" aria-label="Close notification">
+      <button
+        class="notification-close"
+        aria-label="Close notification"
+        @click="$emit('close')"
+      >
         ×
       </button>
     </div>

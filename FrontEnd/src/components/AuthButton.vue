@@ -16,7 +16,11 @@ defineProps({
 </script>
 
 <template>
-  <button :type="type" :disabled="disabled" class="auth-button">
+  <button
+    :type="type"
+    :disabled="disabled"
+    class="auth-button"
+  >
     {{ text }}
   </button>
 </template>

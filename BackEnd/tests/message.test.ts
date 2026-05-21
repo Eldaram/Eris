@@ -80,7 +80,7 @@ describe('Messaging API — Authenticated', () => {
     afterAll(async () => {
         try {
             await mongoose.disconnect();
-        } catch (err) {
+        } catch {
             // Ignore teardown errors
         }
     });

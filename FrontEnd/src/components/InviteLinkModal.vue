@@ -37,18 +37,34 @@ const handleClose = () => emit('close')
 
 <template>
   <Teleport to="body">
-    <div v-if="show" class="modal-overlay" @click.self="handleClose">
+    <div
+      v-if="show"
+      class="modal-overlay"
+      @click.self="handleClose"
+    >
       <div class="modal-content">
         <header class="modal-header">
           <h2>Invite Link</h2>
-          <button class="close-btn" @click="handleClose" aria-label="Close invite popup">×</button>
+          <button
+            class="close-btn"
+            aria-label="Close invite popup"
+            @click="handleClose"
+          >
+            ×
+          </button>
         </header>
 
         <main class="modal-body">
-          <p class="server-name">{{ serverName }}</p>
+          <p class="server-name">
+            {{ serverName }}
+          </p>
           <div class="field-group">
             <label for="invite-link">Invite link</label>
-            <input id="invite-link" :value="inviteUrl" readonly />
+            <input
+              id="invite-link"
+              :value="inviteUrl"
+              readonly
+            >
           </div>
           <div class="meta-row">
             <span class="meta-label">Expires</span>
@@ -57,7 +73,11 @@ const handleClose = () => emit('close')
         </main>
 
         <footer class="modal-footer">
-          <ClipboardCopyButton :text="inviteUrl" label="Copy link" @copied="$emit('copied')" />
+          <ClipboardCopyButton
+            :text="inviteUrl"
+            label="Copy link"
+            @copied="$emit('copied')"
+          />
         </footer>
       </div>
     </div>

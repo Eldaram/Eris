@@ -37,7 +37,7 @@ describe('UserService & Auto-Sync Integration Tests', () => {
                 }
 
                 await UserModel.deleteInPocketBaseById(pocketbaseId);
-            } catch (err) {}
+            } catch {}
         }
         await prisma.$disconnect();
     });

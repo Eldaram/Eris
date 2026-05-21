@@ -43,13 +43,13 @@ defineEmits(['update:modelValue'])
     <input 
       :id="id" 
       :value="modelValue"
-      @input="$emit('update:modelValue', $event.target.value)"
-      :type="type" 
+      :type="type"
       :placeholder="placeholder" 
-      :required="required"
+      :required="required" 
       :disabled="disabled"
       :maxlength="maxLength"
-    />
+      @input="$emit('update:modelValue', $event.target.value)"
+    >
   </div>
 </template>
 

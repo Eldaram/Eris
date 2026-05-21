@@ -169,12 +169,22 @@ onUnmounted(() => {
   <div class="home-layout">
     <div class="navigation-panel">
       <div class="sidebars-container">
-        <ServerSideBar ref="serverSidebarRef" @server-error="handleServerError" @server-selected="selectedServer = $event" />
+        <ServerSideBar
+          ref="serverSidebarRef"
+          @server-error="handleServerError"
+          @server-selected="selectedServer = $event"
+        />
         <div class="rooms-column">
-          <RoomSideBar :selectedServer="selectedServer" @create-invite="handleCreateInvite" />
+          <RoomSideBar
+            :selected-server="selectedServer"
+            @create-invite="handleCreateInvite"
+          />
         </div>
       </div>
-      <UserProfileCard :username="authState.user?.username || 'Current User'" status="Online" />
+      <UserProfileCard
+        :username="authState.user?.username || 'Current User'"
+        status="Online"
+      />
     </div>
     
     <div class="chat-column">
@@ -194,7 +204,7 @@ onUnmounted(() => {
 
     <InviteConfirmationModal
       :show="inviteState.showConfirmation"
-      :serverName="inviteState.serverName"
+      :server-name="inviteState.serverName"
       :loading="inviteState.loadingJoin || inviteState.loadingPreview"
       @close="handleInviteClose"
       @confirm="handleInviteConfirm"
@@ -202,9 +212,9 @@ onUnmounted(() => {
 
     <InviteLinkModal
       :show="inviteState.showInviteLink"
-      :serverName="inviteState.serverName"
-      :inviteUrl="inviteState.inviteUrl"
-      :expiresAt="inviteState.expiresAt"
+      :server-name="inviteState.serverName"
+      :invite-url="inviteState.inviteUrl"
+      :expires-at="inviteState.expiresAt"
       @close="handleInviteLinkClose"
     />
   </div>

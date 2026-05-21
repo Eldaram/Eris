@@ -18,11 +18,18 @@ defineProps({
       <div class="avatar">
         {{ username.charAt(0).toUpperCase() }}
       </div>
-      <div class="status-indicator" :class="status.toLowerCase()"></div>
+      <div
+        class="status-indicator"
+        :class="status.toLowerCase()"
+      />
     </div>
     <div class="user-info">
-      <div class="username">{{ username }}</div>
-      <div class="status-text">{{ status }}</div>
+      <div class="username">
+        {{ username }}
+      </div>
+      <div class="status-text">
+        {{ status }}
+      </div>
     </div>
   </div>
 </template>

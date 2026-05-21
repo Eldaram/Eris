@@ -2,8 +2,6 @@ import { mount } from '@vue/test-utils'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import HomeView from '../../views/HomeView.vue'
 import { serverService } from '../../services/server'
-import { chatService } from '../../services/chat'
-import { socketService } from '../../services/socket'
 import { authState } from '../../services/auth'
 
 vi.mock('../../services/server', () => ({
