@@ -27,6 +27,10 @@ defineProps({
   disabled: {
     type: Boolean,
     default: false
+  },
+  maxLength: {
+    type: Number,
+    default: undefined
   }
 })
 
@@ -44,6 +48,7 @@ defineEmits(['update:modelValue'])
       :placeholder="placeholder" 
       :required="required"
       :disabled="disabled"
+      :maxlength="maxLength"
     />
   </div>
 </template>

@@ -1,6 +1,8 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { authState } from '../services/auth'
 import { serverService } from '../services/server'
+import RoomCreationModal from './RoomCreationModal.vue'
 
 const props = defineProps({
   selectedServer: {
@@ -12,12 +14,22 @@ const props = defineProps({
 const channels = ref([])
 const loading = ref(false)
 const error = ref(null)
+const showRoomModal = ref(false)
+const canCreateRoom = ref(false)
+const ownershipLoading = ref(false)
+
+const hasSelectedServer = computed(() => Boolean(props.selectedServer?.id))
 
 watch(() => props.selectedServer, async (newServer) => {
   channels.value = []
   error.value = null
+  canCreateRoom.value = false
+
   if (!newServer || !newServer.id) return
+
   loading.value = true
+  ownershipLoading.value = true
+
   try {
     channels.value = await serverService.getChannels(newServer.id)
   } catch (err) {
@@ -25,7 +37,44 @@ watch(() => props.selectedServer, async (newServer) => {
   } finally {
     loading.value = false
   }
-})
+
+  try {
+    if (newServer.ownerId && authState.user?.id) {
+      canCreateRoom.value = newServer.ownerId === authState.user.id
+    }
+
+    const ownership = await serverService.isServerOwner(newServer.id)
+    canCreateRoom.value = Boolean(ownership.isOwner)
+  } catch (err) {
+    canCreateRoom.value = false
+  } finally {
+    ownershipLoading.value = false
+  }
+}, { immediate: true })
+
+const reloadChannels = async () => {
+  if (!props.selectedServer?.id) return
+
+  try {
+    channels.value = await serverService.getChannels(props.selectedServer.id)
+  } catch (err) {
+    error.value = err.message || 'Failed to load channels'
+  }
+}
+
+const handleOpenRoomModal = () => {
+  if (!canCreateRoom.value || !props.selectedServer?.id) return
+  showRoomModal.value = true
+}
+
+const handleRoomCreated = async () => {
+  showRoomModal.value = false
+  await reloadChannels()
+}
+
+const handleRoomError = (errorMsg) => {
+  error.value = errorMsg || 'Failed to create room'
+}
 
 const emit = defineEmits(['create-invite'])
 </script>
@@ -35,16 +84,27 @@ const emit = defineEmits(['create-invite'])
     <div class="sidebar-header">
       <h2>
         <span>{{ props.selectedServer?.name || 'Rooms' }}</span>
-        <button
-          v-if="props.selectedServer"
-          class="invite-btn"
-          type="button"
-          aria-label="Create server invite"
-          title="Create invite"
-          @click="emit('create-invite')"
-        >
-          ⤴
-        </button>
+        <span class="actions" v-if="hasSelectedServer">
+          <button
+            v-if="canCreateRoom"
+            class="room-btn"
+            type="button"
+            aria-label="Create room"
+            title="Create room"
+            @click="handleOpenRoomModal"
+          >
+            +
+          </button>
+          <button
+            class="invite-btn"
+            type="button"
+            aria-label="Create server invite"
+            title="Create invite"
+            @click="emit('create-invite')"
+          >
+            ⤴
+          </button>
+        </span>
       </h2>
     </div>
     <div class="room-list">
@@ -72,6 +132,15 @@ const emit = defineEmits(['create-invite'])
         <div v-if="error" class="room-item">{{ error }}</div>
       </template>
     </div>
+
+    <RoomCreationModal
+      :show="showRoomModal"
+      :serverId="props.selectedServer?.id || ''"
+      :serverName="props.selectedServer?.name || ''"
+      @close="showRoomModal = false"
+      @created="handleRoomCreated"
+      @error="handleRoomError"
+    />
   </div>
 </template>
 
@@ -100,6 +169,12 @@ const emit = defineEmits(['create-invite'])
   gap: 0.75rem;
 }
 
+.actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .invite-btn {
   border: 1px solid var(--input-border, #4a1447);
   background: var(--input-bg, #240b23);
@@ -116,6 +191,26 @@ const emit = defineEmits(['create-invite'])
 }
 
 .invite-btn:hover {
+  border-color: var(--primary, #B0228C);
+  transform: translateY(-1px);
+}
+
+.room-btn {
+  border: 1px solid var(--input-border, #4a1447);
+  background: var(--input-bg, #240b23);
+  color: var(--text-main, #fff);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.room-btn:hover {
   border-color: var(--primary, #B0228C);
   transform: translateY(-1px);
 }

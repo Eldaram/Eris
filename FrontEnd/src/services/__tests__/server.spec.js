@@ -63,4 +63,37 @@ describe('serverService invite methods', () => {
     expect(result.serverId).toBe('server-1')
     expect(result.joined).toBe(true)
   })
+
+  it('checks server ownership', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ isOwner: true })
+    })
+
+    const result = await serverService.isServerOwner('server-1')
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining('/api/servers/server-1/ownership'),
+      expect.objectContaining({ method: 'GET' })
+    )
+    expect(result.isOwner).toBe(true)
+  })
+
+  it('creates a room in a server', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: () => Promise.resolve({ success: true, room: { id: 'room-1', name: 'announcements', serverId: 'server-1' } })
+    })
+
+    const result = await serverService.createRoom('server-1', 'announcements')
+
+    expect(fetchSpy).toHaveBeenCalledWith(
+      expect.stringContaining('/api/servers/server-1/rooms'),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ name: 'announcements' })
+      })
+    )
+    expect(result.room.name).toBe('announcements')
+  })
 })
