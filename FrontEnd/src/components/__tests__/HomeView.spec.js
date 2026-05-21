@@ -19,6 +19,9 @@ vi.mock('../../services/chat', () => ({
         init: vi.fn(),
         clearRoom: vi.fn(),
         setRoom: vi.fn()
+    },
+    chatState: {
+        currentRoomId: null
     }
 }))
 
