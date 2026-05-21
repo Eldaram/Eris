@@ -16,7 +16,7 @@ const loadServers = async () => {
   try {
     servers.value = await serverService.listServers()
     if (servers.value.length > 0 && !selectedServerId.value) {
-      selectServer(servers.value[0].id)
+      selectServer(servers.value[0])
     }
   } catch (err) {
     emit('server-error', err.message || 'Failed to load servers')
@@ -43,6 +43,22 @@ const selectServer = (server) => {
   selectedServerId.value = server.id
   emit('server-selected', server)
 }
+
+const reloadServers = async () => {
+  await loadServers()
+}
+
+const selectServerById = (serverId) => {
+  const server = servers.value.find((item) => item.id === serverId)
+  if (server) {
+    selectServer(server)
+  }
+}
+
+defineExpose({
+  reloadServers,
+  selectServerById
+})
 </script>
 
 <template>

@@ -93,4 +93,34 @@ export class ServerController {
             return res.status(500).json({ error: 'Internal Server Error' });
         }
     }
+
+    static async createInvite(req: Request, res: Response) {
+        const user = req.user;
+
+        if (!user) {
+            return res.status(401).json({ error: 'Authentication required.', code: 'UNAUTHORIZED' });
+        }
+
+        const { serverId } = req.params;
+
+        if (!serverId) {
+            return res.status(400).json({ error: 'serverId is required.', code: 'INVALID_SERVER_ID' });
+        }
+
+        try {
+            const invite = await ServerService.createInviteLink({
+                serverId,
+                creatorId: user.id,
+            });
+
+            return res.status(201).json(invite);
+        } catch (error) {
+            if (error instanceof ServerInputError) {
+                return res.status(error.statusCode).json({ error: error.message, code: error.code });
+            }
+
+            console.error('Unexpected error while creating an invite link:', error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
 }

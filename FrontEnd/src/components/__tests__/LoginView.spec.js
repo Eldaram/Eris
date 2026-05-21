@@ -15,7 +15,9 @@ const router = createRouter({
     history: createWebHistory(),
     routes: [
         { path: '/', name: 'home', component: { template: '<div>Home</div>' } },
-        { path: '/register', name: 'register', component: { template: '<div>Register</div>' } }
+        { path: '/login', name: 'login', component: { template: '<div>Login</div>' } },
+        { path: '/register', name: 'register', component: { template: '<div>Register</div>' } },
+        { path: '/invite/:code', name: 'invite', component: { template: '<div>Invite</div>' } }
     ]
 })
 
@@ -52,9 +54,11 @@ describe('LoginView.vue', () => {
         expect(passwordInput.element.value).toBe('password123')
     })
 
-    it('navigates to home on successful submit', async () => {
-        const pushSpy = vi.spyOn(router, 'push')
+    it('navigates to the stored redirect after successful submit', async () => {
+        const replaceSpy = vi.spyOn(router, 'replace')
         authService.login.mockResolvedValueOnce({ user: { id: 1 }, token: 'fake_token' })
+
+        await router.push({ path: '/login', query: { redirect: '/invite/test-code' } })
 
         const wrapper = mount(LoginView, mountOptions)
 
@@ -66,7 +70,7 @@ describe('LoginView.vue', () => {
         await new Promise(resolve => setTimeout(resolve, 0))
 
         expect(authService.login).toHaveBeenCalledWith('test@example.com', 'password123')
-        expect(pushSpy).toHaveBeenCalledWith('/')
+        expect(replaceSpy).toHaveBeenCalledWith('/invite/test-code')
     })
 
     it('shows error notification on failed submit', async () => {

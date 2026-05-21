@@ -26,12 +26,26 @@ watch(() => props.selectedServer, async (newServer) => {
     loading.value = false
   }
 })
+
+const emit = defineEmits(['create-invite'])
 </script>
 
 <template>
   <div class="room-sidebar">
     <div class="sidebar-header">
-      <h2>{{ props.selectedServer?.name || 'Rooms' }}</h2>
+      <h2>
+        <span>{{ props.selectedServer?.name || 'Rooms' }}</span>
+        <button
+          v-if="props.selectedServer"
+          class="invite-btn"
+          type="button"
+          aria-label="Create server invite"
+          title="Create invite"
+          @click="emit('create-invite')"
+        >
+          ⤴
+        </button>
+      </h2>
     </div>
     <div class="room-list">
       <!-- If no server selected, show default static sidebar -->
@@ -80,6 +94,30 @@ watch(() => props.selectedServer, async (newServer) => {
   margin: 0;
   font-size: 1.2rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.invite-btn {
+  border: 1px solid var(--input-border, #4a1447);
+  background: var(--input-bg, #240b23);
+  color: var(--text-main, #fff);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.invite-btn:hover {
+  border-color: var(--primary, #B0228C);
+  transform: translateY(-1px);
 }
 
 .room-list {

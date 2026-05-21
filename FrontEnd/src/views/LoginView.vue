@@ -47,8 +47,8 @@ const handleLogin = async () => {
 
   try {
     await authService.login(email.value, password.value)
-    // Redirect to home page upon successful login
-    router.push('/')
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
+    router.replace(redirect)
   } catch (error) {
     showNotification(error.message || 'Login failed', 'error')
   } finally {

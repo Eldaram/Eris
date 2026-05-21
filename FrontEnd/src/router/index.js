@@ -14,6 +14,12 @@ const router = createRouter({
             meta: { requiresAuth: true }
         },
         {
+            path: '/invite/:code',
+            name: 'invite',
+            component: HomeView,
+            meta: { requiresAuth: true }
+        },
+        {
             path: '/login',
             name: 'login',
             component: LoginView,
@@ -33,10 +39,8 @@ router.beforeEach((to, from) => {
     const isAuthenticated = authState.isAuthenticated
 
     if (to.meta.requiresAuth && !isAuthenticated) {
-        // If trying to access a restricted page without being logged in
-        return { name: 'login' }
+        return { name: 'login', query: { redirect: to.fullPath } }
     } else if (to.meta.requiresUnauth && isAuthenticated) {
-        // If trying to access login/register while already logged in
         return { name: 'home' }
     }
 })
