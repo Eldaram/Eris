@@ -29,7 +29,7 @@ export class ServerService {
     private static readonly INVITE_TTL_MS = 24 * 60 * 60 * 1000;
 
     private static getInviteBaseUrl() {
-        return process.env.FRONTEND_URL || 'http://localhost:5173';
+        return process.env.FRONTEND_URL || 'http://10.105.3.69:5173/';
     }
 
     private static buildInviteUrl(code: string) {

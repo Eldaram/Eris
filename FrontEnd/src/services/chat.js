@@ -1,8 +1,9 @@
 import { reactive, watch } from 'vue';
 import { authService } from './auth';
 import { socketService } from './socket';
+import { getApiBaseUrl } from './apiBase';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const API_URL = getApiBaseUrl();
 const PAGE_SIZE = 25;
 
 export const chatState = reactive({

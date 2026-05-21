@@ -6,6 +6,7 @@ import {
     InterServerEvents,
     SocketData,
 } from '../types/notifications';
+import { isAllowedOrigin } from './cors';
 
 let io: SocketIOServer<
     ClientToServerEvents,
@@ -20,8 +21,6 @@ let io: SocketIOServer<
  * @returns The initialized Socket.IO server instance
  */
 export function initializeSocket(httpServer: HTTPServer): SocketIOServer {
-    const allowedOrigin = process.env.FRONTEND_URL || 'http://localhost:5173';
-
     io = new SocketIOServer<
         ClientToServerEvents,
         ServerToClientEvents,
@@ -29,7 +28,13 @@ export function initializeSocket(httpServer: HTTPServer): SocketIOServer {
         SocketData
     >(httpServer, {
         cors: {
-            origin: allowedOrigin,
+            origin: (origin, callback) => {
+                if (isAllowedOrigin(origin)) {
+                    callback(null, true);
+                    return;
+                }
+                callback(new Error('Not allowed by Socket.IO CORS'));
+            },
             methods: ['GET', 'POST'],
             credentials: true,
         },

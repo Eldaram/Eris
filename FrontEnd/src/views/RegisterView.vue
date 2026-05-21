@@ -5,6 +5,7 @@ import AuthCard from '../components/AuthCard.vue'
 import AuthInput from '../components/AuthInput.vue'
 import AuthButton from '../components/AuthButton.vue'
 import NotificationCard from '../components/NotificationCard.vue'
+import { getApiBaseUrl } from '../services/apiBase'
 
 const router = useRouter()
 
@@ -36,7 +37,8 @@ const handleRegister = async () => {
   isLoading.value = true
   
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users`, {
+    const apiUrl = getApiBaseUrl()
+    const response = await fetch(`${apiUrl}/api/users`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

@@ -1,9 +1,20 @@
 import { authService } from './auth';
+import { getApiBaseUrl } from './apiBase';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = getApiBaseUrl();
 
 const jsonRequest = async (url, options = {}) => {
     const response = await fetch(url, options);
+    const contentType = response.headers.get('content-type') || '';
+
+    if (!contentType.includes('application/json')) {
+        const bodyText = await response.text();
+        throw new Error(
+            `Expected JSON from ${url}, but received ${contentType || 'unknown content type'}` +
+            (bodyText.startsWith('<!DOCTYPE') || bodyText.startsWith('<html') ? ' (HTML response)' : '')
+        );
+    }
+
     const data = await response.json();
 
     if (!response.ok) {
