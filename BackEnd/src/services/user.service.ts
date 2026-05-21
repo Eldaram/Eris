@@ -72,7 +72,7 @@ export class UserService {
 
         try {
             return await UserModel.createInPrisma(normalizedUsername, pbUser.id);
-        } catch {
+        } catch (error) {
             // Compensation step to avoid leaving orphan users in PocketBase.
             try {
                 await UserModel.deleteInPocketBaseById(pbUser.id);
