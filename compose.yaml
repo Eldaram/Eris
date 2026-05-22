@@ -45,7 +45,7 @@ services:
       - pocketbase_data:/pb_data
       - pocketbase_public:/pb_public
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:8090/api/health" ]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8090/api/health"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -75,13 +75,15 @@ services:
     volumes:
       - .:/app
     environment:
-      - PORT=4000
+      - PORT=${PORT:-4000}
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-eris}?schema=public
       - MONGO_URI=mongodb://${MONGO_USER:-root}:${MONGO_PASSWORD:-rootpassword}@mongodb:27017/${MONGO_DB:-eris}?authSource=admin
-      - POCKETBASE_URL=http://pocketbase:8090
+      - POCKETBASE_URL=${POCKETBASE_INTERNAL_URL:-http://pocketbase:8090}
       - POCKETBASE_ADMIN_EMAIL=${POCKETBASE_ADMIN_EMAIL:-admin@eris.local}
       - POCKETBASE_ADMIN_PASSWORD=${POCKETBASE_ADMIN_PASSWORD:-admin_password_123}
-      - FRONTEND_URL=http://localhost:5173
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+      - FRONTEND_URLS=${FRONTEND_URLS:-}
+      - ALLOW_LAN_ORIGINS=${ALLOW_LAN_ORIGINS:-true}
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
     depends_on:
@@ -104,7 +106,7 @@ services:
     volumes:
       - .:/app
     environment:
-      - VITE_API_URL=http://localhost:4000
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:4000}
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
     depends_on:

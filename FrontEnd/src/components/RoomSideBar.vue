@@ -9,6 +9,10 @@ const props = defineProps({
   selectedServer: {
     type: Object,
     default: null,
+  },
+  selectedRoomId: {
+    type: String,
+    default: null,
   }
 })
 
@@ -114,7 +118,11 @@ const handleRoomError = (errorMsg) => {
   error.value = errorMsg || 'Failed to create room'
 }
 
-const emit = defineEmits(['create-invite'])
+const emit = defineEmits(['create-invite', 'room-selected'])
+
+const handleRoomClick = (room) => {
+  emit('room-selected', room)
+}
 </script>
 
 <template>
@@ -151,11 +159,8 @@ const emit = defineEmits(['create-invite'])
     <div class="room-list">
       <!-- If no server selected, show default static sidebar -->
       <template v-if="!props.selectedServer">
-        <div class="room-item">
-          <span class="hashtag">#</span> general
-        </div>
         <div class="room-item empty-state">
-          <span class="text">No other rooms</span>
+          <span class="text">Choose a server to see its rooms</span>
         </div>
       </template>
 
@@ -178,6 +183,8 @@ const emit = defineEmits(['create-invite'])
             v-for="ch in channels"
             :key="ch.id"
             class="room-item"
+            :class="{ selected: ch.id === props.selectedRoomId }"
+            @click="handleRoomClick(ch)"
           >
             <span class="hashtag">#</span> {{ ch.name }}
           </div>
@@ -289,6 +296,11 @@ const emit = defineEmits(['create-invite'])
   align-items: center;
   gap: 0.5rem;
   transition: background-color 0.2s, color 0.2s;
+}
+
+.room-item.selected {
+  background-color: var(--input-bg, #240b23);
+  color: var(--text-main, #fff);
 }
 
 .room-item:hover {

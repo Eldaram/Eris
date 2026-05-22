@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client';
 import { authState } from './auth';
+import { getApiBaseUrl } from './apiBase';
 
 let socket = null;
 const eventHandlers = new Map();
@@ -12,7 +13,7 @@ export const socketService = {
     connect() {
         if (socket) return socket;
 
-        const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+        const serverUrl = getApiBaseUrl();
         
         socket = io(serverUrl, {
             auth: {

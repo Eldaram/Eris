@@ -12,24 +12,30 @@ if (typeof Element.prototype.scrollTo !== 'function') {
 describe('ChatArea.vue', () => {
     beforeEach(() => {
         // Reset states before each test
-        chatState.currentRoomId = 'general'
+        chatState.currentRoomId = null
+        chatState.currentRoom = null
         chatState.messages = []
         chatState.isLoading = false
+        chatState.isLoadingMore = false
         chatState.error = null
+        chatState.hasMoreMessages = false
+        chatState.oldestMessageId = null
+        chatState.shouldScrollToBottom = false
         
         authState.user = { id: 'u1', username: 'testuser' }
     })
 
-    it('renders empty state correctly', () => {
+    it('renders the room selection prompt when no room is selected', () => {
         const wrapper = mount(ChatArea)
-        expect(wrapper.text()).toContain('#')
-        expect(wrapper.text()).toContain('general')
-        expect(wrapper.text()).toContain('Welcome to #general!')
-        expect(wrapper.text()).toContain('This is the beginning of the chat channel history')
+        expect(wrapper.text()).toContain('Choose a room')
+        expect(wrapper.text()).toContain('Select a room from the sidebar')
+        expect(wrapper.find('.chat-header').exists()).toBe(false)
         expect(wrapper.find('.message').exists()).toBe(false)
     })
 
-    it('renders messages correctly when populated', async () => {
+    it('renders messages correctly when a room is selected', async () => {
+        chatState.currentRoomId = 'general'
+        chatState.currentRoom = { id: 'general', name: 'general' }
         chatState.messages = [
             {
                 id: 'm1',
@@ -57,6 +63,7 @@ describe('ChatArea.vue', () => {
         // Check if messages list is rendered
         expect(wrapper.find('.message-list').exists()).toBe(true)
         expect(wrapper.findAll('.message').length).toBe(2)
+        expect(wrapper.text()).toContain('general')
 
         // Check own-message class for author matching
         const messages = wrapper.findAll('.message')

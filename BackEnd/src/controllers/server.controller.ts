@@ -5,7 +5,7 @@ export class ServerController {
     /**
      * POST /api/servers
      * Creates a new server for the authenticated user.
-     * The user is automatically added to the server and a "general" room is created.
+        * The user is automatically added to the server's member list.
      */
     static async createServer(req: Request, res: Response) {
         const user = req.user;

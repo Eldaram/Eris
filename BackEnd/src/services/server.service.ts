@@ -29,7 +29,7 @@ export class ServerService {
     private static readonly INVITE_TTL_MS = 24 * 60 * 60 * 1000;
 
     private static getInviteBaseUrl() {
-        return process.env.FRONTEND_URL || 'http://localhost:5173';
+        return process.env.FRONTEND_URL || 'http://10.105.3.69:5173/';
     }
 
     private static buildInviteUrl(code: string) {
@@ -41,7 +41,6 @@ export class ServerService {
      * Atomically:
      * 1. Creates the Server record.
      * 2. Adds the owner to the server's user list (UserPerServer).
-     * 3. Creates a default "general" room in the server.
      *
      * @returns The ID of the newly created server.
      */
@@ -70,15 +69,6 @@ export class ServerService {
                     data: {
                         userId: input.ownerId,
                         serverId: server.id,
-                    },
-                });
-
-                // 3. Create the default "general" room
-                await tx.room.create({
-                    data: {
-                        name: 'general',
-                        serverId: server.id,
-                        isDm: false,
                     },
                 });
 

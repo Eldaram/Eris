@@ -22,7 +22,7 @@ We have combined the application startup process into a single command for a fri
 - [Docker & Docker Compose](https://www.docker.com/)
 
 ### 2. Environment Setup
-Create your `.env` file from the provided example (one file, in the root directory):
+Create your `.env` file from the provided example if you want to override the defaults. Docker Compose will run with built-in fallback values when the file is missing, and it will prefer `.env` values when present:
 
 ```sh
 # Mac/Linux

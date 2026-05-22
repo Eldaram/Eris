@@ -16,7 +16,8 @@ describe('serverService invite methods', () => {
   it('creates an invite with auth headers', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({ inviteUrl: 'http://frontend.test/invite/abc', expiresAt: '2026-05-22T12:00:00.000Z', code: 'abc' })
+      json: () => Promise.resolve({ inviteUrl: 'http://frontend.test/invite/abc', expiresAt: '2026-05-22T12:00:00.000Z', code: 'abc' }),
+      headers: { get: () => 'application/json' }
     })
 
     const result = await serverService.createInvite('server-1')
@@ -35,7 +36,8 @@ describe('serverService invite methods', () => {
   it('loads invite preview', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({ serverName: 'Preview Server', alreadyMember: false })
+      json: () => Promise.resolve({ serverName: 'Preview Server', alreadyMember: false }),
+      headers: { get: () => 'application/json' }
     })
 
     const result = await serverService.getInvitePreview('invite-code')
@@ -51,7 +53,8 @@ describe('serverService invite methods', () => {
   it('redeems an invite', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({ serverId: 'server-1', joined: true, alreadyMember: false })
+      json: () => Promise.resolve({ serverId: 'server-1', joined: true, alreadyMember: false }),
+      headers: { get: () => 'application/json' }
     })
 
     const result = await serverService.redeemInvite('invite-code')
@@ -67,7 +70,8 @@ describe('serverService invite methods', () => {
   it('checks server ownership', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({ isOwner: true })
+      json: () => Promise.resolve({ isOwner: true }),
+      headers: { get: () => 'application/json' }
     })
 
     const result = await serverService.isServerOwner('server-1')
@@ -82,7 +86,8 @@ describe('serverService invite methods', () => {
   it('creates a room in a server', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
       ok: true,
-      json: () => Promise.resolve({ success: true, room: { id: 'room-1', name: 'announcements', serverId: 'server-1' } })
+      json: () => Promise.resolve({ success: true, room: { id: 'room-1', name: 'announcements', serverId: 'server-1' } }),
+      headers: { get: () => 'application/json' }
     })
 
     const result = await serverService.createRoom('server-1', 'announcements')

@@ -1,4 +1,5 @@
 import { reactive } from 'vue'
+import { getApiBaseUrl } from './apiBase'
 
 const STATE_KEY = 'auth_state'
 
@@ -28,7 +29,7 @@ export const authService = {
                     authState.isAuthenticated = true
 
                     // Asynchronously verify token and sync user with PostgreSQL in the background
-                    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+                    const apiUrl = getApiBaseUrl()
                     fetch(`${apiUrl}/api/users/me`, {
                         method: 'GET',
                         headers: {
@@ -62,7 +63,8 @@ export const authService = {
      */
     async login(email, password) {
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/users/login`, {
+            const apiUrl = getApiBaseUrl()
+            const response = await fetch(`${apiUrl}/api/users/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
