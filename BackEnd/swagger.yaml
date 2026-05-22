@@ -27,7 +27,7 @@ paths:
       summary: Health check endpoint
       description: Returns the operational status of the Eris API.
       responses:
-        '200':
+        "200":
           description: API is running successfully
           content:
             application/json:
@@ -47,15 +47,15 @@ paths:
       summary: Get all users
       description: Retrieves a list of all registered users.
       responses:
-        '200':
+        "200":
           description: A list of users
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/User'
-        '500':
+                  $ref: "#/components/schemas/User"
+        "500":
           description: Internal server error
     post:
       tags:
@@ -94,18 +94,18 @@ paths:
                   description: Password confirmation (must match password)
                   example: SecurePassword123
       responses:
-        '201':
+        "201":
           description: User successfully created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '400':
+                $ref: "#/components/schemas/User"
+        "400":
           description: Validation error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 invalidEmail:
                   value:
@@ -123,12 +123,12 @@ paths:
                   value:
                     error: Password must be at least 8 characters long.
                     code: INVALID_PASSWORD
-        '409':
+        "409":
           description: Conflict - resource already exists
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 emailExists:
                   value:
@@ -138,7 +138,7 @@ paths:
                   value:
                     error: A user with this username already exists.
                     code: USERNAME_ALREADY_EXISTS
-        '500':
+        "500":
           description: Internal server error
   /api/users/me:
     get:
@@ -149,18 +149,18 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Profile successfully retrieved
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-        '401':
+                $ref: "#/components/schemas/User"
+        "401":
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 missingToken:
                   value:
@@ -197,7 +197,7 @@ paths:
                   description: Password
                   example: SecurePassword123
       responses:
-        '200':
+        "200":
           description: User successfully authenticated
           content:
             application/json:
@@ -205,29 +205,29 @@ paths:
                 type: object
                 properties:
                   user:
-                    $ref: '#/components/schemas/User'
+                    $ref: "#/components/schemas/User"
                   token:
                     type: string
                     description: Authentication token
                     example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        '400':
+        "400":
           description: Validation error or missing credentials
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '401':
+                $ref: "#/components/schemas/Error"
+        "401":
           description: Invalid credentials
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 invalidCredentials:
                   value:
                     error: Invalid email or password.
                     code: INVALID_PASSWORD
-        '500':
+        "500":
           description: Internal server error
   /api/servers:
     post:
@@ -257,7 +257,7 @@ paths:
                   maxLength: 100
                   example: My Awesome Server
       responses:
-        '200':
+        "200":
           description: Server successfully created
           content:
             application/json:
@@ -269,12 +269,12 @@ paths:
                     format: uuid
                     description: The unique identifier of the newly created server.
                     example: 123e4567-e89b-12d3-a456-426614174000
-        '400':
+        "400":
           description: Validation error — server name is missing or invalid
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 missingName:
                   value:
@@ -284,12 +284,12 @@ paths:
                   value:
                     error: Server name must be between 1 and 100 characters.
                     code: INVALID_SERVER_NAME
-        '401':
+        "401":
           description: Unauthorized — missing or invalid authentication token
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 missingToken:
                   value:
@@ -299,12 +299,12 @@ paths:
                   value:
                     error: Invalid or expired token.
                     code: INVALID_TOKEN
-        '500':
+        "500":
           description: Internal server error — server could not be created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 creationFailed:
                   value:
@@ -318,7 +318,7 @@ paths:
         security:
           - bearerAuth: []
         responses:
-          '200':
+          "200":
             description: A list of servers
             content:
               application/json:
@@ -328,19 +328,19 @@ paths:
                     servers:
                       type: array
                       items:
-                        $ref: '#/components/schemas/Server'
-          '401':
+                        $ref: "#/components/schemas/Server"
+          "401":
             description: Unauthorized — missing or invalid authentication token
             content:
               application/json:
                 schema:
-                  $ref: '#/components/schemas/Error'
-          '500':
+                  $ref: "#/components/schemas/Error"
+          "500":
             description: Internal server error
             content:
               application/json:
                 schema:
-                  $ref: '#/components/schemas/Error'
+                  $ref: "#/components/schemas/Error"
   /api/messages:
     post:
       tags:
@@ -366,33 +366,33 @@ paths:
                   type: string
                   description: The text content of the message
       responses:
-        '201':
+        "201":
           description: Message successfully created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Message'
-        '400':
+                $ref: "#/components/schemas/Message"
+        "400":
           description: Missing required fields
-        '401':
+        "401":
           description: Unauthorized — missing or invalid authentication token
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Forbidden — requester cannot access the target room
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
+                $ref: "#/components/schemas/Error"
+        "404":
           description: Room not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
+                $ref: "#/components/schemas/Error"
+        "500":
           description: Internal server error
   /api/messages/room/{roomId}:
     get:
@@ -416,33 +416,33 @@ paths:
             type: string
           description: Optional message id used as a cursor to fetch the previous 25 messages
       responses:
-        '200':
+        "200":
           description: A list of messages
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Message'
-        '401':
+                  $ref: "#/components/schemas/Message"
+        "401":
           description: Unauthorized — missing or invalid authentication token
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Forbidden — requester cannot access the target room
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
+                $ref: "#/components/schemas/Error"
+        "404":
           description: Room or cursor message not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
+                $ref: "#/components/schemas/Error"
+        "500":
           description: Internal server error
 
   /api/servers/{serverId}/channels:
@@ -461,7 +461,7 @@ paths:
             type: string
           description: The ID of the server to retrieve channels for
       responses:
-        '200':
+        "200":
           description: A list of channels
           content:
             application/json:
@@ -471,25 +471,77 @@ paths:
                   channels:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Channel'
-        '401':
+                      $ref: "#/components/schemas/Channel"
+        "401":
           description: Unauthorized — missing or invalid authentication token
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Forbidden — requester is not a member of the server
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
+                $ref: "#/components/schemas/Error"
+        "500":
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
+
+  /api/servers/{serverId}/users:
+    get:
+      tags:
+        - Servers
+      summary: List users in a server with presence
+      description: Returns members of the specified server if the requester is a member. Each item contains the user id, username, and whether at least one socket is currently connected for that user.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: serverId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The ID of the server to retrieve users for
+      responses:
+        "200":
+          description: A list of users and their current online status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ServerUserPresence"
+        "401":
+          description: Unauthorized — missing or invalid authentication token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "403":
+          description: Forbidden — requester is not a member of the server
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Server not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/servers/{serverId}/ownership:
     get:
@@ -507,7 +559,7 @@ paths:
             type: string
           description: The ID of the server to check ownership for
       responses:
-        '200':
+        "200":
           description: Ownership status
           content:
             application/json:
@@ -517,18 +569,18 @@ paths:
                   isOwner:
                     type: boolean
                     example: true
-        '401':
+        "401":
           description: Unauthorized — missing or invalid authentication token
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
+                $ref: "#/components/schemas/Error"
+        "404":
           description: Server not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
   /api/servers/{serverId}/rooms:
     post:
@@ -561,7 +613,7 @@ paths:
                   maxLength: 24
                   example: announcements
       responses:
-        '201':
+        "201":
           description: Room successfully created
           content:
             application/json:
@@ -585,12 +637,12 @@ paths:
                         type: string
                         format: uuid
                         example: 123e4567-e89b-12d3-a456-426614174000
-        '400':
+        "400":
           description: Validation error — room name is missing or invalid
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 missingName:
                   value:
@@ -600,35 +652,35 @@ paths:
                   value:
                     error: Room name must be 24 characters or fewer.
                     code: INVALID_ROOM_NAME
-        '401':
+        "401":
           description: Unauthorized — missing or invalid authentication token
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Forbidden — requester is not the server owner
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 accessDenied:
                   value:
                     error: Only the server owner can create rooms.
                     code: ACCESS_DENIED
-        '404':
+        "404":
           description: Server not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '500':
+                $ref: "#/components/schemas/Error"
+        "500":
           description: Internal server error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
   /api/servers/{serverId}/invites:
     post:
@@ -646,7 +698,7 @@ paths:
             type: string
           description: The ID of the server to create an invite for
       responses:
-        '201':
+        "201":
           description: Invite successfully created
           content:
             application/json:
@@ -660,28 +712,28 @@ paths:
                   expiresAt:
                     type: string
                     format: date-time
-                    example: '2026-05-22T12:00:00.000Z'
+                    example: "2026-05-22T12:00:00.000Z"
                   code:
                     type: string
                     example: 550e8400-e29b-41d4-a716-446655440000
-        '401':
+        "401":
           description: Unauthorized — missing or invalid authentication token
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '403':
+                $ref: "#/components/schemas/Error"
+        "403":
           description: Forbidden — requester is not a member of the server
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
+                $ref: "#/components/schemas/Error"
+        "404":
           description: Server not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
   /api/invites/{code}:
     get:
@@ -699,7 +751,7 @@ paths:
             type: string
           description: The invitation token
       responses:
-        '200':
+        "200":
           description: Invite preview retrieved successfully
           content:
             application/json:
@@ -712,24 +764,24 @@ paths:
                   alreadyMember:
                     type: boolean
                     example: false
-        '401':
+        "401":
           description: Unauthorized — missing or invalid authentication token
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
+                $ref: "#/components/schemas/Error"
+        "404":
           description: Invitation not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '410':
+                $ref: "#/components/schemas/Error"
+        "410":
           description: Invitation has expired
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
   /api/invites/{code}/redeem:
     post:
@@ -747,7 +799,7 @@ paths:
             type: string
           description: The invitation token
       responses:
-        '200':
+        "200":
           description: Invite redeemed successfully
           content:
             application/json:
@@ -764,24 +816,24 @@ paths:
                   alreadyMember:
                     type: boolean
                     example: false
-        '401':
+        "401":
           description: Unauthorized — missing or invalid authentication token
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '404':
+                $ref: "#/components/schemas/Error"
+        "404":
           description: Invitation not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-        '410':
+                $ref: "#/components/schemas/Error"
+        "410":
           description: Invitation has expired
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
 components:
   schemas:
@@ -830,14 +882,14 @@ components:
             - INVITE_REDEMPTION_FAILED
             - INVALID_ROOM_NAME
             - ROOM_CREATION_FAILED
-            - 'ROOM_NOT_FOUND'
-            - 'MESSAGE_NOT_FOUND'
-            - 'MESSAGE_CREATE_FAILED'
-            - 'MESSAGE_FETCH_FAILED'
+            - "ROOM_NOT_FOUND"
+            - "MESSAGE_NOT_FOUND"
+            - "MESSAGE_CREATE_FAILED"
+            - "MESSAGE_FETCH_FAILED"
     Message:
       type: object
       properties:
-            id:
+        id:
           type: string
           description: The unique identifier of the message
         room_id:
@@ -846,9 +898,9 @@ components:
         author_id:
           type: string
           description: Refers to Postgres_Users.id
-            author_username:
-              type: string
-              description: The username of the author
+        author_username:
+          type: string
+          description: The username of the author
         content:
           type: string
           description: The text content of the message
@@ -884,6 +936,18 @@ components:
         isDm:
           type: boolean
           description: Whether this channel is a direct message channel
+    ServerUserPresence:
+      type: object
+      properties:
+        id:
+          type: string
+          description: User unique identifier
+        username:
+          type: string
+          description: Username for display
+        isOnline:
+          type: boolean
+          description: Whether the user currently has at least one active socket connection
   securitySchemes:
     bearerAuth:
       type: http

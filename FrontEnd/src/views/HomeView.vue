@@ -1,53 +1,53 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { chatService, chatState } from '../services/chat'
-import { socketService } from '../services/socket'
-import { authState } from '../services/auth'
-import { serverService } from '../services/server'
-import ServerSideBar from '../components/ServerSideBar.vue'
-import RoomSideBar from '../components/RoomSideBar.vue'
-import UserProfileCard from '../components/UserProfileCard.vue'
-import ChatArea from '../components/ChatArea.vue'
-import MessageInput from '../components/MessageInput.vue'
-import ConnectedUsersSideBar from '../components/ConnectedUsersSideBar.vue'
-import NotificationCard from '../components/NotificationCard.vue'
-import InviteConfirmationModal from '../components/InviteConfirmationModal.vue'
-import InviteLinkModal from '../components/InviteLinkModal.vue'
+import { ref, onMounted, onUnmounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { chatService, chatState } from "../services/chat";
+import { socketService } from "../services/socket";
+import { authState } from "../services/auth";
+import { serverService } from "../services/server";
+import ServerSideBar from "../components/ServerSideBar.vue";
+import RoomSideBar from "../components/RoomSideBar.vue";
+import UserProfileCard from "../components/UserProfileCard.vue";
+import ChatArea from "../components/ChatArea.vue";
+import MessageInput from "../components/MessageInput.vue";
+import ConnectedUsersSideBar from "../components/ConnectedUsersSideBar.vue";
+import NotificationCard from "../components/NotificationCard.vue";
+import InviteConfirmationModal from "../components/InviteConfirmationModal.vue";
+import InviteLinkModal from "../components/InviteLinkModal.vue";
 
-const route = useRoute()
-const router = useRouter()
-const serverSidebarRef = ref(null)
+const route = useRoute();
+const router = useRouter();
+const serverSidebarRef = ref(null);
 
 const notification = ref({
   show: false,
-  message: '',
-  type: 'error'
-})
+  message: "",
+  type: "error",
+});
 
-const selectedServer = ref(null)
+const selectedServer = ref(null);
 const inviteState = ref({
   showConfirmation: false,
   showInviteLink: false,
   loadingPreview: false,
   loadingJoin: false,
-  serverName: '',
-  inviteUrl: '',
-  expiresAt: '',
-  code: ''
-})
+  serverName: "",
+  inviteUrl: "",
+  expiresAt: "",
+  code: "",
+});
 
 const handleServerError = (errorMsg) => {
   notification.value = {
     show: true,
     message: errorMsg,
-    type: 'error'
-  }
-}
+    type: "error",
+  };
+};
 
 const closeNotification = () => {
-  notification.value.show = false
-}
+  notification.value.show = false;
+};
 
 const clearInviteState = () => {
   inviteState.value = {
@@ -55,125 +55,125 @@ const clearInviteState = () => {
     showInviteLink: false,
     loadingPreview: false,
     loadingJoin: false,
-    serverName: '',
-    inviteUrl: '',
-    expiresAt: '',
-    code: ''
-  }
-}
+    serverName: "",
+    inviteUrl: "",
+    expiresAt: "",
+    code: "",
+  };
+};
 
 const openServerById = async (serverId) => {
-  await serverSidebarRef.value?.reloadServers?.()
-  serverSidebarRef.value?.selectServerById?.(serverId)
-}
+  await serverSidebarRef.value?.reloadServers?.();
+  serverSidebarRef.value?.selectServerById?.(serverId);
+};
 
 const handleRoomSelected = async (room) => {
-  await chatService.setRoom(room)
-}
+  await chatService.setRoom(room);
+};
 
 const handleInviteError = (error) => {
-  handleServerError(error?.message || 'Failed to join server from invite')
-  router.replace({ name: 'home' })
-  clearInviteState()
-}
+  handleServerError(error?.message || "Failed to join server from invite");
+  router.replace({ name: "home" });
+  clearInviteState();
+};
 
 const joinInviteAndOpenServer = async (code) => {
-  inviteState.value.loadingJoin = true
+  inviteState.value.loadingJoin = true;
   try {
-    const result = await serverService.redeemInvite(code)
-    await openServerById(result.serverId)
-    router.replace({ name: 'home' })
-    clearInviteState()
+    const result = await serverService.redeemInvite(code);
+    await openServerById(result.serverId);
+    router.replace({ name: "home" });
+    clearInviteState();
   } catch (error) {
-    handleInviteError(error)
+    handleInviteError(error);
   } finally {
-    inviteState.value.loadingJoin = false
+    inviteState.value.loadingJoin = false;
   }
-}
+};
 
 const loadInvitePreview = async (code) => {
-  if (!code) return
+  if (!code) return;
 
-  inviteState.value.loadingPreview = true
-  inviteState.value.code = code
+  inviteState.value.loadingPreview = true;
+  inviteState.value.code = code;
 
   try {
-    const preview = await serverService.getInvitePreview(code)
-    inviteState.value.serverName = preview.serverName
+    const preview = await serverService.getInvitePreview(code);
+    inviteState.value.serverName = preview.serverName;
 
     if (preview.alreadyMember) {
-      await joinInviteAndOpenServer(code)
-      return
+      await joinInviteAndOpenServer(code);
+      return;
     }
 
-    inviteState.value.showConfirmation = true
+    inviteState.value.showConfirmation = true;
   } catch (error) {
-    handleInviteError(error)
+    handleInviteError(error);
   } finally {
-    inviteState.value.loadingPreview = false
+    inviteState.value.loadingPreview = false;
   }
-}
+};
 
 const handleInviteConfirm = async () => {
-  if (!inviteState.value.code) return
-  inviteState.value.showConfirmation = false
-  await joinInviteAndOpenServer(inviteState.value.code)
-}
+  if (!inviteState.value.code) return;
+  inviteState.value.showConfirmation = false;
+  await joinInviteAndOpenServer(inviteState.value.code);
+};
 
 const handleInviteClose = () => {
-  inviteState.value.showConfirmation = false
-  router.replace({ name: 'home' })
-  clearInviteState()
-}
+  inviteState.value.showConfirmation = false;
+  router.replace({ name: "home" });
+  clearInviteState();
+};
 
 const handleCreateInvite = async () => {
-  if (!selectedServer.value?.id) return
+  if (!selectedServer.value?.id) return;
 
   try {
-    const invite = await serverService.createInvite(selectedServer.value.id)
-    inviteState.value.inviteUrl = invite.inviteUrl
-    inviteState.value.expiresAt = invite.expiresAt
-    inviteState.value.serverName = selectedServer.value.name
-    inviteState.value.showInviteLink = true
+    const invite = await serverService.createInvite(selectedServer.value.id);
+    inviteState.value.inviteUrl = invite.inviteUrl;
+    inviteState.value.expiresAt = invite.expiresAt;
+    inviteState.value.serverName = selectedServer.value.name;
+    inviteState.value.showInviteLink = true;
   } catch (error) {
-    handleServerError(error.message || 'Failed to create invite link')
+    handleServerError(error.message || "Failed to create invite link");
   }
-}
+};
 
 const handleInviteLinkClose = () => {
-  inviteState.value.showInviteLink = false
-  inviteState.value.inviteUrl = ''
-  inviteState.value.expiresAt = ''
-}
+  inviteState.value.showInviteLink = false;
+  inviteState.value.inviteUrl = "";
+  inviteState.value.expiresAt = "";
+};
 
 watch(
   () => selectedServer.value?.id,
   () => {
-    chatService.clearRoom()
-  }
-)
+    chatService.clearRoom();
+  },
+);
 
 watch(
   () => route.params.code,
   (code) => {
-    if (typeof code === 'string' && code.trim()) {
-      loadInvitePreview(code.trim())
+    if (typeof code === "string" && code.trim()) {
+      loadInvitePreview(code.trim());
     } else {
-      clearInviteState()
+      clearInviteState();
     }
   },
-  { immediate: true }
-)
+  { immediate: true },
+);
 
 // Initialize real-time chat service connection
 onMounted(() => {
-  chatService.init()
-})
+  chatService.init();
+});
 
 // Clean up WebSocket connection when leaving
 onUnmounted(() => {
-  socketService.disconnect()
-})
+  socketService.disconnect();
+});
 </script>
 
 <template>
@@ -199,13 +199,13 @@ onUnmounted(() => {
         status="Online"
       />
     </div>
-    
+
     <div class="chat-column">
       <ChatArea />
       <MessageInput v-if="chatState.currentRoomId" />
     </div>
-    
-    <ConnectedUsersSideBar />
+
+    <ConnectedUsersSideBar :selected-server="selectedServer" />
 
     <NotificationCard
       :show="notification.show"
